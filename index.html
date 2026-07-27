@@ -3,425 +3,536 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<title>물품관리</title>
+<title>소모품관리</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,sans-serif;background:#f5f5f5}
-.header{background:linear-gradient(135deg,#00b894,#00cec9);color:#fff;padding:12px 15px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}
-.header-title{font-weight:bold;font-size:15px}
+body{font-family:-apple-system,sans-serif;background:#f0f4f8;min-height:100vh}
+
+/* ── 로그인 ── */
+.auth-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#00b894,#00cec9);padding:20px}
+.auth-box{background:#fff;border-radius:16px;padding:28px 24px;width:100%;max-width:380px;box-shadow:0 10px 40px rgba(0,0,0,.2)}
+.auth-logo{text-align:center;font-size:40px;margin-bottom:8px}
+.auth-title{text-align:center;font-size:20px;font-weight:bold;color:#2d3436;margin-bottom:4px}
+.auth-sub{text-align:center;color:#b2bec3;font-size:13px;margin-bottom:22px}
+.auth-input{width:100%;padding:13px;border:2px solid #eee;border-radius:10px;font-size:15px;margin-bottom:10px;outline:none;transition:border .2s}
+.auth-input:focus{border-color:#00b894}
+.auth-select{width:100%;padding:13px;border:2px solid #eee;border-radius:10px;font-size:15px;margin-bottom:10px;background:#fff}
+.auth-btn{width:100%;padding:14px;background:#00b894;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;margin-bottom:8px}
+.auth-btn.sub{background:#f0f4f8;color:#636e72;font-size:14px;padding:11px}
+.auth-link{text-align:center;color:#00b894;font-size:13px;cursor:pointer;margin-top:4px;text-decoration:underline}
+
+/* ── 헤더 ── */
+.header{background:linear-gradient(135deg,#00b894,#00cec9);color:#fff;padding:12px 15px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.header-left{font-weight:bold;font-size:14px;line-height:1.4}
 .header-right{display:flex;gap:6px}
-.hbtn{padding:5px 10px;border:none;border-radius:5px;cursor:pointer;font-size:12px;font-weight:bold}
-.tabs{display:flex;overflow-x:auto;gap:4px;padding:8px;background:#fff;border-bottom:1px solid #eee}
-.tab{flex-shrink:0;padding:8px 14px;background:#f0f0f0;border:none;border-radius:20px;cursor:pointer;font-size:13px;font-weight:bold;color:#666}
+.hbtn{padding:6px 11px;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:bold}
+
+/* ── 탭 ── */
+.tabs{display:flex;overflow-x:auto;gap:4px;padding:8px 10px;background:#fff;border-bottom:2px solid #eee;-webkit-overflow-scrolling:touch}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;padding:8px 14px;background:#f0f4f8;border:none;border-radius:20px;cursor:pointer;font-size:13px;font-weight:bold;color:#636e72;white-space:nowrap}
 .tab.active{background:#00b894;color:#fff}
-.container{padding:10px}
-.card{background:#fff;border-radius:10px;padding:15px;margin-bottom:10px;box-shadow:0 2px 6px rgba(0,0,0,.08)}
-.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.card-title{font-weight:bold;font-size:15px;color:#2d3436}
-.qty-badge{background:#00b894;color:#fff;padding:4px 12px;border-radius:20px;font-weight:bold;font-size:14px}
-.qty-badge.zero{background:#b2bec3}
-.qty-badge.low{background:#e17055}
-.item-row{display:flex;align-items:center;padding:10px 0;border-bottom:1px solid #f5f5f5}
-.item-row:last-child{border-bottom:none}
-.item-check{width:22px;height:22px;margin-right:10px;cursor:pointer;flex-shrink:0}
-.item-info{flex:1}
-.item-name{font-size:14px;font-weight:bold;color:#2d3436}
-.item-unit{font-size:12px;color:#b2bec3;margin-top:2px}
-.item-qty{font-size:16px;font-weight:bold;text-align:right;min-width:60px}
-.item-qty.positive{color:#00b894}
+
+/* ── 검색 ── */
+.search-wrap{padding:8px 10px;background:#fff;border-bottom:1px solid #eee}
+.search-input{width:100%;padding:10px 14px;border:1px solid #ddd;border-radius:8px;font-size:14px;outline:none}
+
+/* ── 아이템 목록 ── */
+.item-list{padding:10px}
+.item-card{background:#fff;border-radius:10px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);overflow:hidden}
+.item-row{display:flex;align-items:center;padding:13px 14px}
+.item-check{width:22px;height:22px;margin-right:12px;cursor:pointer;flex-shrink:0;accent-color:#00b894}
+.item-info{flex:1;min-width:0}
+.item-name{font-size:14px;font-weight:bold;color:#2d3436;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-memo{font-size:11px;color:#b2bec3;margin-top:2px}
+.item-qty-wrap{text-align:right;flex-shrink:0;margin-left:10px}
+.item-qty{font-size:18px;font-weight:bold}
+.item-qty.pos{color:#00b894}
+.item-qty.neg{color:#e17055}
 .item-qty.zero{color:#b2bec3}
-.item-qty.negative{color:#e17055}
-.action-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;padding:12px;border-top:2px solid #eee;display:flex;gap:8px;z-index:100}
+.item-unit{font-size:11px;color:#b2bec3;margin-top:1px}
+
+/* ── 액션바 ── */
+.action-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;padding:12px 10px;border-top:2px solid #eee;display:flex;gap:8px;z-index:40}
 .action-bar.hidden{display:none}
-.abtn{flex:1;padding:14px;border:none;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;color:#fff}
+.abtn{flex:1;padding:14px 8px;border:none;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;color:#fff}
 .abtn.in{background:#0984e3}
 .abtn.out{background:#e17055}
 .abtn.ret{background:#6c5ce7}
-.modal-bg{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:200}
-.modal-bg.show{display:flex;align-items:flex-end}
-.modal{background:#fff;border-radius:16px 16px 0 0;padding:20px;width:100%;max-height:85vh;overflow-y:auto}
-.modal-title{font-size:17px;font-weight:bold;margin-bottom:15px;color:#2d3436}
-.modal-close{float:right;font-size:24px;cursor:pointer;color:#b2bec3;margin-top:-4px}
-.selected-list{background:#f5f5f5;border-radius:8px;padding:10px;margin-bottom:15px;max-height:200px;overflow-y:auto}
-.sel-item{display:flex;justify-content:space-between;align-items:center;padding:8px;background:#fff;border-radius:6px;margin-bottom:6px}
-.sel-item-name{font-size:14px;font-weight:bold}
-.qty-input-wrap{display:flex;align-items:center;gap:8px;margin-top:8px}
-.qty-input-wrap label{font-size:14px;font-weight:bold;min-width:70px}
-.qty-input{width:80px;padding:8px;border:2px solid #ddd;border-radius:8px;font-size:16px;text-align:center}
-.team-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}
-.team-btn{padding:14px;border:2px solid #ddd;border-radius:10px;background:#fff;cursor:pointer;font-size:14px;font-weight:bold;color:#2d3436}
-.team-btn.selected{background:#00b894;color:#fff;border-color:#00b894}
-.confirm-btn{width:100%;padding:15px;background:#00b894;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:15px}
-.confirm-btn:disabled{background:#b2bec3}
-.loading-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:999;align-items:center;justify-content:center;color:#fff;font-size:18px;font-weight:bold}
-.loading-overlay.show{display:flex}
-.login-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#00b894,#00cec9)}
-.login-box{background:#fff;border-radius:16px;padding:30px;width:90%;max-width:360px;box-shadow:0 10px 30px rgba(0,0,0,.2)}
-.login-title{text-align:center;font-size:22px;font-weight:bold;color:#00b894;margin-bottom:8px}
-.login-sub{text-align:center;color:#b2bec3;font-size:13px;margin-bottom:25px}
-.login-input{width:100%;padding:13px;border:2px solid #eee;border-radius:10px;font-size:15px;margin-bottom:12px;outline:none}
-.login-input:focus{border-color:#00b894}
-.login-btn{width:100%;padding:15px;background:#00b894;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer}
-.team-select-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:15px}
-.team-sel-btn{padding:12px;border:2px solid #eee;border-radius:10px;background:#fff;cursor:pointer;font-size:13px;font-weight:bold;color:#2d3436;text-align:center}
-.team-sel-btn.active{border-color:#00b894;background:#00b894;color:#fff}
-.tx-row{padding:10px;border-bottom:1px solid #f5f5f5;font-size:13px}
-.tx-type{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold;margin-right:6px}
-.tx-type.입고{background:#d5f5e3;color:#00b894}
-.tx-type.출고{background:#fde8e8;color:#e17055}
-.tx-type.반납{background:#e8e4ff;color:#6c5ce7}
-.search-bar{padding:8px;background:#fff;border-bottom:1px solid #eee}
-.search-bar input{width:100%;padding:10px;border:1px solid #eee;border-radius:8px;font-size:14px}
-.empty{text-align:center;padding:40px;color:#b2bec3;font-size:14px}
+.spacer{height:80px}
+
+/* ── 모달 ── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;align-items:flex-end}
+.modal-bg.show{display:flex}
+.modal{background:#fff;border-radius:20px 20px 0 0;padding:20px;width:100%;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:17px;font-weight:bold;margin-bottom:4px}
+.modal-sub{font-size:13px;color:#636e72;margin-bottom:16px}
+.modal-close{float:right;font-size:26px;cursor:pointer;color:#b2bec3;line-height:1;margin-top:-4px}
+.sel-list{max-height:180px;overflow-y:auto;margin-bottom:14px}
+.sel-item{background:#f8f9fa;border-radius:8px;padding:12px;margin-bottom:8px}
+.sel-item-name{font-size:14px;font-weight:bold;margin-bottom:8px}
+.sel-row{display:flex;align-items:center;gap:10px}
+.sel-row label{font-size:13px;color:#636e72;min-width:40px}
+.sel-qty{width:80px;padding:8px;border:2px solid #ddd;border-radius:8px;font-size:15px;text-align:center}
+.sel-unit{flex:1;padding:8px;border:2px solid #ddd;border-radius:8px;font-size:14px;background:#fff}
+.team-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px}
+.team-btn{padding:11px 4px;border:2px solid #ddd;border-radius:8px;background:#fff;cursor:pointer;font-size:13px;font-weight:bold;color:#636e72;text-align:center}
+.team-btn.on{border-color:#e17055;background:#e17055;color:#fff}
+.confirm-btn{width:100%;padding:15px;background:#00b894;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer}
+.confirm-btn.danger{background:#e17055}
+.confirm-btn.purple{background:#6c5ce7}
+
+/* ── 거래내역 ── */
+.tx-item{padding:12px 14px;border-bottom:1px solid #f0f4f8}
+.tx-head{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.tx-badge{padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold}
+.tx-badge.입고{background:#d5f5e3;color:#00b894}
+.tx-badge.출고{background:#fde8e8;color:#e17055}
+.tx-badge.반납{background:#e8e4ff;color:#6c5ce7}
+.tx-name{font-size:14px;font-weight:bold}
+.tx-info{font-size:12px;color:#b2bec3}
+
+/* ── 회원관리 ── */
+.user-card{background:#fff;border-radius:10px;padding:14px;margin-bottom:8px;border-left:4px solid #ddd}
+.user-card.pending{border-color:#f39c12}
+.user-card.approved{border-color:#00b894}
+.user-name{font-size:15px;font-weight:bold}
+.user-info{font-size:12px;color:#b2bec3;margin-top:3px}
+.user-btns{display:flex;gap:6px;margin-top:10px}
+.ubtn{padding:8px 14px;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:bold;color:#fff}
+.ubtn.approve{background:#00b894}
+.ubtn.reject{background:#e17055}
+.ubtn.delete{background:#b2bec3}
+
+/* ── 공통 ── */
+.loading{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center}
+.loading.show{display:flex}
+.loading-box{background:#fff;border-radius:12px;padding:24px 36px;font-size:16px;font-weight:bold;color:#2d3436}
+.empty{text-align:center;padding:50px 20px;color:#b2bec3}
+.empty-icon{font-size:40px;margin-bottom:10px}
 </style>
 </head>
 <body>
 
-<div class="loading-overlay" id="loading">⏳ 처리 중...</div>
+<div class="loading" id="loading"><div class="loading-box">⏳ 처리 중...</div></div>
+<div class="modal-bg" id="modalBg" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal"></div>
+</div>
 
-<!-- 로그인 화면 -->
+<!-- 로그인 -->
 <div id="loginScreen">
-<div class="login-wrap">
-<div class="login-box">
-  <div class="login-title">📦 물품관리</div>
-  <div class="login-sub">이름과 팀을 선택하세요</div>
-  <input class="login-input" id="loginName" placeholder="이름">
-  <div style="font-weight:bold;font-size:13px;margin-bottom:8px;color:#636e72">팀 선택</div>
-  <div class="team-select-grid" id="teamSelectGrid"></div>
-  <button class="login-btn" onclick="doLogin()">시작하기</button>
+<div class="auth-wrap">
+<div class="auth-box">
+  <div class="auth-logo">📦</div>
+  <div class="auth-title">소모품관리</div>
+  <div class="auth-sub">로그인하세요</div>
+  <input class="auth-input" id="loginId" placeholder="사번" type="text">
+  <input class="auth-input" id="loginPw" placeholder="비밀번호" type="password" onkeydown="if(event.key==='Enter')doLogin()">
+  <button class="auth-btn" onclick="doLogin()">로그인</button>
+  <button class="auth-btn sub" onclick="showReg()">회원가입</button>
+</div>
+</div>
+</div>
+
+<!-- 회원가입 -->
+<div id="regScreen" style="display:none">
+<div class="auth-wrap">
+<div class="auth-box">
+  <div class="auth-logo">✍️</div>
+  <div class="auth-title">회원가입</div>
+  <div class="auth-sub">정보를 입력하세요</div>
+  <input class="auth-input" id="regName" placeholder="이름">
+  <input class="auth-input" id="regId" placeholder="사번" type="text">
+  <input class="auth-input" id="regPw" placeholder="비밀번호" type="password">
+  <select class="auth-select" id="regTeam">
+    <option value="">팀 선택</option>
+    <option value="화성">화성</option>
+    <option value="수원">수원</option>
+    <option value="평택">평택</option>
+    <option value="2팀">2팀</option>
+    <option value="3팀">3팀</option>
+    <option value="4팀">4팀</option>
+    <option value="5팀">5팀</option>
+    <option value="6팀">6팀</option>
+    <option value="창고">창고관리자</option>
+  </select>
+  <button class="auth-btn" onclick="doRegister()">가입 신청</button>
+  <button class="auth-btn sub" onclick="showLogin()">← 로그인으로</button>
 </div>
 </div>
 </div>
 
 <!-- 메인 앱 -->
-<div id="mainApp" style="display:none">
+<div id="app" style="display:none">
   <div class="header">
-    <span class="header-title" id="headerTitle">물품관리</span>
+    <div class="header-left">
+      <div>📦 소모품관리</div>
+      <div id="headerSub" style="font-size:11px;opacity:.85"></div>
+    </div>
     <div class="header-right">
-      <button class="hbtn" style="background:#fff;color:#00b894" onclick="loadData(true)">🔄</button>
-      <button class="hbtn" style="background:rgba(255,255,255,.3);color:#fff" onclick="doLogout()">로그아웃</button>
+      <button id="adminBtn" class="hbtn" style="background:rgba(255,255,255,.3);color:#fff;display:none" onclick="switchTab('관리자')">👥 회원관리</button>
+      <button class="hbtn" style="background:#fff;color:#00b894" onclick="reload()">🔄</button>
+      <button class="hbtn" style="background:rgba(255,255,255,.25);color:#fff" onclick="doLogout()">로그아웃</button>
     </div>
   </div>
-
-  <div class="tabs" id="tabBar"></div>
-  <div class="search-bar"><input type="text" id="searchInput" placeholder="물품 검색..." oninput="renderItems()"></div>
-
-  <div class="container" id="itemList"></div>
-
-  <div class="action-bar hidden" id="actionBar">
-    <button class="abtn in" id="btnIn" onclick="openModal('in')" style="display:none">📥 입고</button>
-    <button class="abtn out" id="btnOut" onclick="openModal('out')">📤 출고</button>
-    <button class="abtn ret" id="btnRet" onclick="openModal('ret')" style="display:none">🔄 반납</button>
+  <div class="tabs" id="tabs"></div>
+  <div class="search-wrap" id="searchWrap">
+    <input class="search-input" id="searchInput" placeholder="🔍 물품 검색..." oninput="render()">
   </div>
-</div>
-
-<!-- 모달 -->
-<div class="modal-bg" id="modalBg" onclick="if(event.target===this)closeModal()">
-<div class="modal" id="modalContent"></div>
+  <div id="content"></div>
+  <div class="spacer"></div>
+  <div class="action-bar hidden" id="actionBar">
+    <button class="abtn in"  id="btnIn"  onclick="openIn()"  style="display:none">📥 입고</button>
+    <button class="abtn out" id="btnOut" onclick="openOut()" style="display:none">📤 출고</button>
+    <button class="abtn ret" id="btnRet" onclick="openRet()" style="display:none">↩️ 반납</button>
+  </div>
 </div>
 
 <script>
-const INVENTORY_API = 'https://script.google.com/macros/s/AKfycbw6J-NIAmA8TiWxGgrGsuHWhA0qeka4cAujK6x0Mwu_QFJ-a3YhP6JPkzRx3UR5f2G8/exec';
-const TEAMS = ['화성','수원','평택','2팀','3팀','4팀','5팀','6팀'];
-const WAREHOUSE = '창고';
-const ALL_TABS = [WAREHOUSE, ...TEAMS, '거래내역'];
+// ── 설정 ──────────────────────────────────────────────
+const API = 'https://script.google.com/macros/s/AKfycbw6J-NIAmA8TiWxGgrGsuHWhA0qeka4cAujK6x0Mwu_QFJ-a3YhP6JPkzRx3UR5f2G8/exec';
+const ADMIN = '218062';
+const TABS  = ['창고','화성','수원','평택','2팀','3팀','4팀','5팀','6팀','거래내역'];
+const UNITS = ['EA','PK','BX'];
 
-let currentUser = null;
-let currentTab = WAREHOUSE;
-let allItems = [];      // 창고 아이템
-let teamStocks = {};    // 팀별 재고
-let transactions = [];  // 거래내역
-let selected = new Map(); // 선택된 아이템
+let user = null, tab = '창고', items = [], teamStocks = {}, txs = [], sel = new Map();
 
-// ── 로그인 ──────────────────────────────
-function initLogin() {
-  const grid = document.getElementById('teamSelectGrid');
-  grid.innerHTML = ALL_TABS.filter(t => t !== '거래내역').map(t =>
-    `<button class="team-sel-btn" onclick="selectTeam(this,'${t}')">${t === WAREHOUSE ? '🏭 창고' : t}</button>`
-  ).join('');
-
-  const saved = localStorage.getItem('invUser');
-  if (saved) {
-    currentUser = JSON.parse(saved);
-    startApp();
-  }
+// ── 유틸 ──────────────────────────────────────────────
+function loading(s){ document.getElementById('loading').classList.toggle('show',s); }
+async function api(body){
+  const r = await fetch(API,{method:'POST',body:JSON.stringify(body)});
+  return r.json();
+}
+async function apiGet(action){
+  const r = await fetch(API+'?action='+action+'&t='+Date.now());
+  return r.json();
 }
 
-function selectTeam(el, team) {
-  document.querySelectorAll('.team-sel-btn').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-  el.dataset.team = team;
+// ── 인증 ──────────────────────────────────────────────
+function showLogin(){ document.getElementById('regScreen').style.display='none'; document.getElementById('loginScreen').style.display='block'; }
+function showReg()  { document.getElementById('loginScreen').style.display='none'; document.getElementById('regScreen').style.display='block'; }
+
+async function doLogin(){
+  const empId=document.getElementById('loginId').value.trim();
+  const pass =document.getElementById('loginPw').value;
+  if(!empId||!pass){alert('사번과 비밀번호를 입력하세요');return;}
+  loading(true);
+  try{
+    const r=await api({action:'login',empId,pass});
+    if(r.success){
+      user=r.user; user.password=pass;
+      localStorage.setItem('invUser',JSON.stringify(user));
+      startApp();
+    } else { alert(r.error||'로그인 실패'); }
+  } catch(e){alert('서버 오류');}
+  finally{loading(false);}
 }
 
-function doLogin() {
-  const name = document.getElementById('loginName').value.trim();
-  const teamBtn = document.querySelector('.team-sel-btn.active');
-  if (!name) { alert('이름을 입력하세요'); return; }
-  if (!teamBtn) { alert('팀을 선택하세요'); return; }
-  currentUser = { name, team: teamBtn.dataset.team };
-  localStorage.setItem('invUser', JSON.stringify(currentUser));
-  startApp();
+async function doRegister(){
+  const name=document.getElementById('regName').value.trim();
+  const empId=document.getElementById('regId').value.trim();
+  const pass =document.getElementById('regPw').value;
+  const team =document.getElementById('regTeam').value;
+  if(!name||!empId||!pass||!team){alert('모든 항목을 입력하세요');return;}
+  loading(true);
+  try{
+    const r=await api({action:'register',empId,name,pass,team});
+    alert(r.message||'완료');
+    if(r.user){ user=r.user; user.password=pass; localStorage.setItem('invUser',JSON.stringify(user)); startApp(); }
+    else showLogin();
+  } catch(e){alert('서버 오류');}
+  finally{loading(false);}
 }
 
-function doLogout() {
-  if (!confirm('로그아웃 하시겠습니까?')) return;
+function doLogout(){
+  if(!confirm('로그아웃 하시겠습니까?'))return;
   localStorage.removeItem('invUser');
-  currentUser = null;
-  selected.clear();
-  document.getElementById('mainApp').style.display = 'none';
-  document.getElementById('loginScreen').style.display = 'block';
+  user=null; sel.clear();
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginScreen').style.display='block';
 }
 
-function startApp() {
-  document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('mainApp').style.display = 'block';
-  document.getElementById('headerTitle').textContent = `📦 물품관리 (${currentUser.name} - ${currentUser.team})`;
+// ── 앱 시작 ───────────────────────────────────────────
+function startApp(){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('regScreen').style.display='none';
+  document.getElementById('app').style.display='block';
+  document.getElementById('headerSub').textContent=user.name+' · '+user.team;
+  if(String(user.empId)===ADMIN) document.getElementById('adminBtn').style.display='block';
   buildTabs();
   loadData(false);
 }
 
-// ── 탭 ──────────────────────────────────
-function buildTabs() {
-  const bar = document.getElementById('tabBar');
-  bar.innerHTML = ALL_TABS.map(t =>
-    `<button class="tab${t === currentTab ? ' active' : ''}" onclick="switchTab('${t}')">${t === WAREHOUSE ? '🏭 창고' : t === '거래내역' ? '📋 거래내역' : t}</button>`
+function buildTabs(){
+  const all=[...TABS];
+  if(String(user.empId)===ADMIN) all.push('관리자');
+  document.getElementById('tabs').innerHTML=all.map(t=>
+    `<button class="tab${t===tab?' active':''}" onclick="switchTab('${t}')">${t==='창고'?'🏭 창고':t==='거래내역'?'📋 거래':t==='관리자'?'👥 관리자':t}</button>`
   ).join('');
 }
 
-function switchTab(tab) {
-  currentTab = tab;
-  selected.clear();
-  buildTabs();
-  renderItems();
-  updateActionBar();
+function switchTab(t){
+  tab=t; sel.clear(); buildTabs();
+  document.getElementById('searchWrap').style.display=(t==='거래내역'||t==='관리자')?'none':'block';
+  render(); updateBar();
 }
 
-// ── 데이터 로드 ──────────────────────────
-async function loadData(force) {
-  if (!force) {
-    const cache = localStorage.getItem('invCache');
-    if (cache) {
-      const p = JSON.parse(cache);
-      if (Date.now() - p.time < 300000) {
-        allItems = p.allItems;
-        teamStocks = p.teamStocks;
-        transactions = p.transactions;
-        renderItems();
-        return;
-      }
-    }
+// ── 데이터 로드 ───────────────────────────────────────
+async function loadData(force){
+  if(!force){
+    const c=localStorage.getItem('invCache');
+    if(c){const p=JSON.parse(c);if(Date.now()-p.t<180000){items=p.items;teamStocks=p.ts;txs=p.txs;render();return;}}
   }
-  showLoading(true);
-  try {
-    const res = await fetch(INVENTORY_API + '?action=getInventory&t=' + Date.now());
-    const data = await res.json();
-    allItems = data.items || [];
-    teamStocks = data.teamStocks || {};
-    transactions = data.transactions || [];
-    localStorage.setItem('invCache', JSON.stringify({ allItems, teamStocks, transactions, time: Date.now() }));
-    renderItems();
-  } catch(e) {
-    alert('로딩 실패: ' + e.message);
-  } finally {
-    showLoading(false);
-  }
+  loading(true);
+  try{
+    const d=await apiGet('getAll');
+    items=d.items||[]; teamStocks=d.teamStocks||{}; txs=d.transactions||[];
+    localStorage.setItem('invCache',JSON.stringify({items,ts:teamStocks,txs,t:Date.now()}));
+    render();
+  }catch(e){alert('로딩 실패: '+e.message);}
+  finally{loading(false);}
 }
 
-// ── 아이템 렌더링 ────────────────────────
-function renderItems() {
-  const query = (document.getElementById('searchInput').value || '').trim().toLowerCase();
-  const el = document.getElementById('itemList');
+async function reload(){ localStorage.removeItem('invCache'); await loadData(true); }
 
-  if (currentTab === '거래내역') {
-    renderTransactions(el, query);
-    return;
-  }
+// ── 렌더링 ───────────────────────────────────────────
+function render(){
+  const el=document.getElementById('content');
+  if(tab==='거래내역'){ renderTx(el); return; }
+  if(tab==='관리자'){ renderAdmin(el); return; }
 
-  let items = [];
-  if (currentTab === WAREHOUSE) {
-    items = allItems.map(i => ({ name: i.name, unit: i.unit, qty: i.quantity }));
-  } else {
-    const stock = teamStocks[currentTab] || {};
-    // 해당 팀이 보유한 아이템만 (수량 > 0)
-    const all = allItems.map(i => ({ name: i.name, unit: i.unit, qty: stock[i.name] || 0 }));
-    items = all.filter(i => i.qty > 0);
-  }
+  const q=(document.getElementById('searchInput').value||'').toLowerCase();
+  let list=items.map(i=>{
+    let qty;
+    if(tab==='창고') qty=i.quantity;
+    else qty=(teamStocks[tab]||{})[i.name]||0;
+    return{...i,qty};
+  });
+  if(q) list=list.filter(i=>i.name.toLowerCase().includes(q));
 
-  if (query) items = items.filter(i => i.name.toLowerCase().includes(query));
+  if(!list.length){ el.innerHTML='<div class="empty"><div class="empty-icon">📭</div>물품이 없습니다</div>'; return; }
 
-  if (items.length === 0) {
-    el.innerHTML = '<div class="empty">물품이 없습니다</div>';
-    updateActionBar();
-    return;
-  }
-
-  el.innerHTML = items.map(i => {
-    const isChecked = selected.has(i.name);
-    const qtyClass = i.qty > 0 ? 'positive' : i.qty < 0 ? 'negative' : 'zero';
-    return `
-    <div class="card">
+  el.innerHTML='<div class="item-list">'+list.map(i=>{
+    const qc=i.qty>0?'pos':i.qty<0?'neg':'zero';
+    const checked=sel.has(i.name)?'checked':'';
+    return `<div class="item-card">
       <div class="item-row">
-        <input type="checkbox" class="item-check" data-name="${i.name}" data-unit="${i.unit}" onchange="toggleSelect(this)" ${isChecked ? 'checked' : ''}>
+        <input type="checkbox" class="item-check" onchange="toggleSel(this,'${i.name.replace(/'/g,"\\'")}','${i.unit}')" ${checked}>
         <div class="item-info">
           <div class="item-name">${i.name}</div>
+          ${i.memo?`<div class="item-memo">${i.memo}</div>`:''}
+        </div>
+        <div class="item-qty-wrap">
+          <div class="item-qty ${qc}">${i.qty}</div>
           <div class="item-unit">${i.unit}</div>
         </div>
-        <div class="item-qty ${qtyClass}">${i.qty}</div>
       </div>
     </div>`;
-  }).join('');
-
-  updateActionBar();
+  }).join('')+'</div>';
+  updateBar();
 }
 
-function renderTransactions(el, query) {
-  let txs = [...transactions];
-  if (query) txs = txs.filter(t => t.item && t.item.toLowerCase().includes(query));
-  if (txs.length === 0) { el.innerHTML = '<div class="empty">거래내역이 없습니다</div>'; return; }
-  el.innerHTML = txs.map(t => `
-    <div class="tx-row">
-      <span class="tx-type ${t.type}">${t.type}</span>
-      <strong>${t.item}</strong> ${t.qty}개
-      <span style="color:#b2bec3"> · ${t.from}→${t.to} · ${t.user}</span>
-      <div style="color:#b2bec3;font-size:11px;margin-top:3px">${t.date}</div>
-    </div>`).join('');
+function renderTx(el){
+  if(!txs.length){ el.innerHTML='<div class="empty"><div class="empty-icon">📋</div>거래 내역이 없습니다</div>'; return; }
+  el.innerHTML='<div class="item-list">'+txs.map(t=>
+    `<div class="item-card"><div class="tx-item">
+      <div class="tx-head"><span class="tx-badge ${t.type}">${t.type}</span><span class="tx-name">${t.item}</span></div>
+      <div class="tx-info">${t.qty}${t.unit} · ${t.from} → ${t.to} · ${t.user}</div>
+      <div class="tx-info">${t.date}</div>
+    </div></div>`
+  ).join('')+'</div>';
 }
 
-// ── 선택 ────────────────────────────────
-function toggleSelect(cb) {
-  const name = cb.dataset.name;
-  const unit = cb.dataset.unit;
-  if (cb.checked) selected.set(name, { name, unit, qty: 1 });
-  else selected.delete(name);
-  updateActionBar();
+async function renderAdmin(el){
+  loading(true);
+  try{
+    const r=await api({action:'getUsers'});
+    if(!r.success){el.innerHTML='<div class="empty">오류</div>';return;}
+    const pending=r.users.filter(u=>u.status==='대기');
+    const approved=r.users.filter(u=>u.status==='승인');
+    let html='<div class="item-list">';
+    if(pending.length){
+      html+=`<div style="font-weight:bold;padding:8px 4px;color:#f39c12">⏳ 승인 대기 (${pending.length}명)</div>`;
+      html+=pending.map(u=>`<div class="user-card pending">
+        <div class="user-name">${u.name} <span style="font-size:12px;color:#b2bec3">(${u.empId})</span></div>
+        <div class="user-info">${u.team}</div>
+        <div class="user-btns">
+          <button class="ubtn approve" onclick="approveUser('${u.empId}')">승인</button>
+          <button class="ubtn reject"  onclick="deleteUserAction('${u.empId}','${u.name}')">거부</button>
+        </div></div>`).join('');
+    }
+    if(approved.length){
+      html+=`<div style="font-weight:bold;padding:8px 4px;color:#00b894;margin-top:12px">✅ 승인된 사용자 (${approved.length}명)</div>`;
+      html+=approved.map(u=>`<div class="user-card approved">
+        <div class="user-name">${u.name} <span style="font-size:12px;color:#b2bec3">(${u.empId})</span></div>
+        <div class="user-info">${u.team}</div>
+        <div class="user-btns">
+          <button class="ubtn delete" onclick="deleteUserAction('${u.empId}','${u.name}')">삭제</button>
+        </div></div>`).join('');
+    }
+    el.innerHTML=html+'</div>';
+  }finally{loading(false);}
 }
 
-function updateActionBar() {
-  const bar = document.getElementById('actionBar');
-  const btnIn  = document.getElementById('btnIn');
-  const btnOut = document.getElementById('btnOut');
-  const btnRet = document.getElementById('btnRet');
+async function approveUser(empId){
+  if(!confirm('승인하시겠습니까?'))return;
+  loading(true);
+  const r=await api({action:'approveUser',empId});
+  loading(false);
+  if(r.success){alert('승인 완료');switchTab('관리자');}
+  else alert(r.error);
+}
+async function deleteUserAction(empId,name){
+  if(!confirm(name+' 삭제하시겠습니까?'))return;
+  loading(true);
+  const r=await api({action:'deleteUser',empId});
+  loading(false);
+  if(r.success){alert('삭제 완료');switchTab('관리자');}
+  else alert(r.error);
+}
 
-  if (selected.size === 0 || currentTab === '거래내역') {
-    bar.classList.add('hidden'); return;
-  }
+// ── 선택 ─────────────────────────────────────────────
+function toggleSel(cb,name,unit){
+  if(cb.checked) sel.set(name,{name,unit,qty:1});
+  else sel.delete(name);
+  updateBar();
+}
+
+function updateBar(){
+  const bar=document.getElementById('actionBar');
+  const btnIn=document.getElementById('btnIn');
+  const btnOut=document.getElementById('btnOut');
+  const btnRet=document.getElementById('btnRet');
+  if(sel.size===0||tab==='거래내역'||tab==='관리자'){bar.classList.add('hidden');return;}
   bar.classList.remove('hidden');
-
-  if (currentTab === WAREHOUSE) {
-    btnIn.style.display  = 'block';
-    btnOut.style.display = 'block';
-    btnRet.style.display = 'none';
+  if(tab==='창고'){
+    btnIn.style.display='block'; btnOut.style.display='block'; btnRet.style.display='none';
   } else {
-    btnIn.style.display  = 'none';
-    btnOut.style.display = 'none';
-    btnRet.style.display = 'block';
+    btnIn.style.display='none'; btnOut.style.display='none'; btnRet.style.display='block';
   }
 }
 
-// ── 모달 ────────────────────────────────
-function openModal(type) {
-  const items = Array.from(selected.values());
-  if (items.length === 0) return;
-
-  let html = '';
-
-  if (type === 'in') {
-    html = buildQtyModal('📥 입고', items, '창고에 추가됩니다', null, 'confirmIn');
-  } else if (type === 'out') {
-    html = buildQtyModal('📤 출고', items, '어느 팀으로 출고할까요?', TEAMS, 'confirmOut');
-  } else if (type === 'ret') {
-    html = buildQtyModal('🔄 반납', items, `${currentTab} → 창고로 반납`, null, 'confirmRet');
-  }
-
-  document.getElementById('modalContent').innerHTML = html;
-  document.getElementById('modalBg').classList.add('show');
-}
-
-function buildQtyModal(title, items, desc, teamList, confirmFn) {
-  const itemRows = items.map(i => `
-    <div class="sel-item">
-      <span class="sel-item-name">${i.name} (${i.unit})</span>
-      <div class="qty-input-wrap">
-        <label>수량</label>
-        <input type="number" class="qty-input" id="qty_${i.name.replace(/\s/g,'_')}" value="1" min="1">
-      </div>
-    </div>`).join('');
-
-  const teamSection = teamList ? `
-    <div style="font-weight:bold;margin-bottom:8px">목적지 팀</div>
-    <div class="team-grid" id="teamGrid">
-      ${teamList.map(t => `<button class="team-btn" onclick="selectModalTeam(this,'${t}')">${t}</button>`).join('')}
-    </div>` : '';
-
-  return `
+// ── 입고 모달 ────────────────────────────────────────
+function openIn(){
+  const rows=Array.from(sel.values());
+  document.getElementById('modal').innerHTML=`
     <span class="modal-close" onclick="closeModal()">×</span>
-    <div class="modal-title">${title}</div>
-    <div style="color:#636e72;font-size:13px;margin-bottom:12px">${desc}</div>
-    <div class="selected-list">${itemRows}</div>
-    ${teamSection}
-    <button class="confirm-btn" onclick="${confirmFn}()">확인</button>`;
+    <div class="modal-title">📥 창고 입고</div>
+    <div class="modal-sub">수량과 단위를 입력하세요</div>
+    <div class="sel-list">${rows.map(i=>`
+      <div class="sel-item">
+        <div class="sel-item-name">${i.name}</div>
+        <div class="sel-row">
+          <label>수량</label>
+          <input type="number" class="sel-qty" id="q_${esc(i.name)}" value="1" min="1">
+          <select class="sel-unit" id="u_${esc(i.name)}">
+            ${UNITS.map(u=>`<option value="${u}" ${u===i.unit?'selected':''}>${u}</option>`).join('')}
+          </select>
+        </div>
+      </div>`).join('')}</div>
+    <button class="confirm-btn" onclick="doIn()">입고 확인</button>`;
+  showModal();
 }
 
-function selectModalTeam(btn, team) {
-  document.querySelectorAll('#teamGrid .team-btn').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
+async function doIn(){
+  const rows=Array.from(sel.values());
+  const itms=rows.map(i=>({name:i.name,unit:document.getElementById('u_'+esc(i.name)).value,qty:Number(document.getElementById('q_'+esc(i.name)).value)}));
+  closeModal(); loading(true);
+  try{
+    const r=await api({action:'warehouseIn',items:itms,user:user.name});
+    if(r.success){sel.clear();await reload();alert('입고 완료!');}
+    else alert('오류: '+r.error);
+  }finally{loading(false);}
 }
 
-function getModalItems() {
-  return Array.from(selected.values()).map(i => {
-    const inputId = 'qty_' + i.name.replace(/\s/g, '_');
-    const input = document.getElementById(inputId);
-    return { name: i.name, unit: i.unit, qty: Number(input ? input.value : 1) };
-  });
+// ── 출고 모달 ────────────────────────────────────────
+function openOut(){
+  const rows=Array.from(sel.values());
+  document.getElementById('modal').innerHTML=`
+    <span class="modal-close" onclick="closeModal()">×</span>
+    <div class="modal-title">📤 창고 출고</div>
+    <div class="modal-sub">수량·단위·목적팀을 선택하세요</div>
+    <div class="sel-list">${rows.map(i=>`
+      <div class="sel-item">
+        <div class="sel-item-name">${i.name}</div>
+        <div class="sel-row">
+          <label>수량</label>
+          <input type="number" class="sel-qty" id="q_${esc(i.name)}" value="1" min="1">
+          <select class="sel-unit" id="u_${esc(i.name)}">
+            ${UNITS.map(u=>`<option value="${u}" ${u===i.unit?'selected':''}>${u}</option>`).join('')}
+          </select>
+        </div>
+      </div>`).join('')}</div>
+    <div style="font-weight:bold;margin-bottom:8px;font-size:14px">목적지 팀</div>
+    <div class="team-grid">
+      ${['화성','수원','평택','2팀','3팀','4팀','5팀','6팀'].map(t=>`<button class="team-btn" onclick="selTeam(this,'${t}')">${t}</button>`).join('')}
+    </div>
+    <button class="confirm-btn danger" onclick="doOut()">출고 확인</button>`;
+  showModal();
 }
 
-async function confirmIn() {
-  const items = getModalItems();
-  closeModal();
-  showLoading(true);
-  try {
-    const res = await fetch(INVENTORY_API, { method: 'POST', body: JSON.stringify({ action: 'warehouseIn', items, user: currentUser.name }) });
-    const r = await res.json();
-    if (r.success) { selected.clear(); await loadData(true); alert('입고 완료!'); }
-    else alert('오류: ' + r.error);
-  } catch(e) { alert('실패: ' + e.message); }
-  finally { showLoading(false); }
+function selTeam(el,t){
+  document.querySelectorAll('.team-btn').forEach(b=>b.classList.remove('on'));
+  el.classList.add('on');
 }
 
-async function confirmOut() {
-  const items = getModalItems();
-  const teamBtn = document.querySelector('#teamGrid .team-btn.selected');
-  if (!teamBtn) { alert('팀을 선택하세요'); return; }
-  const team = teamBtn.textContent;
-  closeModal();
-  showLoading(true);
-  try {
-    const res = await fetch(INVENTORY_API, { method: 'POST', body: JSON.stringify({ action: 'warehouseOut', items, team, user: currentUser.name }) });
-    const r = await res.json();
-    if (r.success) { selected.clear(); await loadData(true); alert(`${team}으로 출고 완료!`); }
-    else alert('오류: ' + r.error);
-  } catch(e) { alert('실패: ' + e.message); }
-  finally { showLoading(false); }
+async function doOut(){
+  const teamEl=document.querySelector('.team-btn.on');
+  if(!teamEl){alert('팀을 선택하세요');return;}
+  const team=teamEl.textContent;
+  const rows=Array.from(sel.values());
+  const itms=rows.map(i=>({name:i.name,unit:document.getElementById('u_'+esc(i.name)).value,qty:Number(document.getElementById('q_'+esc(i.name)).value)}));
+  closeModal(); loading(true);
+  try{
+    const r=await api({action:'warehouseOut',items:itms,team,user:user.name});
+    if(r.success){sel.clear();await reload();alert(team+'으로 출고 완료!');}
+    else alert('오류: '+r.error);
+  }finally{loading(false);}
 }
 
-async function confirmRet() {
-  const items = getModalItems();
-  closeModal();
-  showLoading(true);
-  try {
-    const res = await fetch(INVENTORY_API, { method: 'POST', body: JSON.stringify({ action: 'teamReturn', items, team: currentTab, user: currentUser.name }) });
-    const r = await res.json();
-    if (r.success) { selected.clear(); await loadData(true); alert('반납 완료!'); }
-    else alert('오류: ' + r.error);
-  } catch(e) { alert('실패: ' + e.message); }
-  finally { showLoading(false); }
+// ── 반납 모달 ────────────────────────────────────────
+function openRet(){
+  const rows=Array.from(sel.values());
+  document.getElementById('modal').innerHTML=`
+    <span class="modal-close" onclick="closeModal()">×</span>
+    <div class="modal-title">↩️ 창고 반납</div>
+    <div class="modal-sub">${tab} → 창고</div>
+    <div class="sel-list">${rows.map(i=>`
+      <div class="sel-item">
+        <div class="sel-item-name">${i.name}</div>
+        <div class="sel-row">
+          <label>수량</label>
+          <input type="number" class="sel-qty" id="q_${esc(i.name)}" value="1" min="1">
+          <select class="sel-unit" id="u_${esc(i.name)}">
+            ${UNITS.map(u=>`<option value="${u}" ${u===i.unit?'selected':''}>${u}</option>`).join('')}
+          </select>
+        </div>
+      </div>`).join('')}</div>
+    <button class="confirm-btn purple" onclick="doRet()">반납 확인</button>`;
+  showModal();
 }
 
-function closeModal() { document.getElementById('modalBg').classList.remove('show'); }
-function showLoading(s) { document.getElementById('loading').classList.toggle('show', s); }
+async function doRet(){
+  const rows=Array.from(sel.values());
+  const itms=rows.map(i=>({name:i.name,unit:document.getElementById('u_'+esc(i.name)).value,qty:Number(document.getElementById('q_'+esc(i.name)).value)}));
+  closeModal(); loading(true);
+  try{
+    const r=await api({action:'teamReturn',items:itms,team:tab,user:user.name});
+    if(r.success){sel.clear();await reload();alert('반납 완료!');}
+    else alert('오류: '+r.error);
+  }finally{loading(false);}
+}
 
-// ── 초기화 ───────────────────────────────
-initLogin();
+// ── 유틸 ──────────────────────────────────────────────
+function esc(s){ return s.replace(/[^a-zA-Z0-9가-힣]/g,'_'); }
+function showModal(){ document.getElementById('modalBg').classList.add('show'); }
+function closeModal(){ document.getElementById('modalBg').classList.remove('show'); }
+
+// ── 초기화 ───────────────────────────────────────────
+window.onload=function(){
+  const saved=localStorage.getItem('invUser');
+  if(saved){ user=JSON.parse(saved); startApp(); }
+};
 </script>
 </body>
 </html>
