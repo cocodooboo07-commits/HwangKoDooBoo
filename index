@@ -121,7 +121,7 @@ body{font-family:-apple-system,sans-serif;background:#f5f5f5}
 </div>
 
 <script>
-const INVENTORY_API = 'INVENTORY_API_URL_HERE';
+const INVENTORY_API = 'https://script.google.com/macros/s/AKfycbw6J-NIAmA8TiWxGgrGsuHWhA0qeka4cAujK6x0Mwu_QFJ-a3YhP6JPkzRx3UR5f2G8/exec';
 const TEAMS = ['화성','수원','평택','2팀','3팀','4팀','5팀','6팀'];
 const WAREHOUSE = '창고';
 const ALL_TABS = [WAREHOUSE, ...TEAMS, '거래내역'];
