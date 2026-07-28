@@ -6,53 +6,40 @@
 <title>소모품관리</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,sans-serif;background:#f0f4f8;min-height:100vh}
-
-/* ── 로그인 ── */
+body{font-family:-apple-system,sans-serif;background:#f0f4f8}
 .auth-wrap{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#00b894,#00cec9);padding:20px}
 .auth-box{background:#fff;border-radius:16px;padding:28px 24px;width:100%;max-width:380px;box-shadow:0 10px 40px rgba(0,0,0,.2)}
 .auth-logo{text-align:center;font-size:40px;margin-bottom:8px}
 .auth-title{text-align:center;font-size:20px;font-weight:bold;color:#2d3436;margin-bottom:4px}
 .auth-sub{text-align:center;color:#b2bec3;font-size:13px;margin-bottom:22px}
-.auth-input{width:100%;padding:13px;border:2px solid #eee;border-radius:10px;font-size:15px;margin-bottom:10px;outline:none;transition:border .2s}
+.auth-input{width:100%;padding:13px;border:2px solid #eee;border-radius:10px;font-size:15px;margin-bottom:10px;outline:none}
 .auth-input:focus{border-color:#00b894}
 .auth-select{width:100%;padding:13px;border:2px solid #eee;border-radius:10px;font-size:15px;margin-bottom:10px;background:#fff}
 .auth-btn{width:100%;padding:14px;background:#00b894;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;margin-bottom:8px}
 .auth-btn.sub{background:#f0f4f8;color:#636e72;font-size:14px;padding:11px}
-.auth-link{text-align:center;color:#00b894;font-size:13px;cursor:pointer;margin-top:4px;text-decoration:underline}
-
-/* ── 헤더 ── */
 .header{background:linear-gradient(135deg,#00b894,#00cec9);color:#fff;padding:12px 15px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50;box-shadow:0 2px 8px rgba(0,0,0,.15)}
 .header-left{font-weight:bold;font-size:14px;line-height:1.4}
 .header-right{display:flex;gap:6px}
 .hbtn{padding:6px 11px;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:bold}
-
-/* ── 탭 ── */
 .tabs{display:flex;overflow-x:auto;gap:4px;padding:8px 10px;background:#fff;border-bottom:2px solid #eee;-webkit-overflow-scrolling:touch}
 .tabs::-webkit-scrollbar{display:none}
-.tab{flex-shrink:0;padding:8px 14px;background:#f0f4f8;border:none;border-radius:20px;cursor:pointer;font-size:13px;font-weight:bold;color:#636e72;white-space:nowrap}
+.tab{flex-shrink:0;padding:8px 14px;background:#f0f4f8;border:none;border-radius:20px;cursor:pointer;font-size:13px;font-weight:bold;color:#636e72}
 .tab.active{background:#00b894;color:#fff}
-
-/* ── 검색 ── */
 .search-wrap{padding:8px 10px;background:#fff;border-bottom:1px solid #eee}
 .search-input{width:100%;padding:10px 14px;border:1px solid #ddd;border-radius:8px;font-size:14px;outline:none}
-
-/* ── 아이템 목록 ── */
 .item-list{padding:10px}
-.item-card{background:#fff;border-radius:10px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.08);overflow:hidden}
+.item-card{background:#fff;border-radius:10px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
 .item-row{display:flex;align-items:center;padding:13px 14px}
 .item-check{width:22px;height:22px;margin-right:12px;cursor:pointer;flex-shrink:0;accent-color:#00b894}
 .item-info{flex:1;min-width:0}
-.item-name{font-size:14px;font-weight:bold;color:#2d3436;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-name{font-size:14px;font-weight:bold;color:#2d3436}
 .item-memo{font-size:11px;color:#b2bec3;margin-top:2px}
 .item-qty-wrap{text-align:right;flex-shrink:0;margin-left:10px}
-.item-qty{font-size:18px;font-weight:bold}
+.item-qty{font-size:16px;font-weight:bold}
 .item-qty.pos{color:#00b894}
 .item-qty.neg{color:#e17055}
 .item-qty.zero{color:#b2bec3}
-.item-unit{font-size:11px;color:#b2bec3;margin-top:1px}
-
-/* ── 액션바 ── */
+.item-unit-label{font-size:11px;color:#b2bec3;margin-top:1px}
 .action-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;padding:12px 10px;border-top:2px solid #eee;display:flex;gap:8px;z-index:40}
 .action-bar.hidden{display:none}
 .abtn{flex:1;padding:14px 8px;border:none;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;color:#fff}
@@ -60,29 +47,26 @@ body{font-family:-apple-system,sans-serif;background:#f0f4f8;min-height:100vh}
 .abtn.out{background:#e17055}
 .abtn.ret{background:#6c5ce7}
 .spacer{height:80px}
-
-/* ── 모달 ── */
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;align-items:flex-end}
 .modal-bg.show{display:flex}
 .modal{background:#fff;border-radius:20px 20px 0 0;padding:20px;width:100%;max-height:90vh;overflow-y:auto}
 .modal-title{font-size:17px;font-weight:bold;margin-bottom:4px}
 .modal-sub{font-size:13px;color:#636e72;margin-bottom:16px}
 .modal-close{float:right;font-size:26px;cursor:pointer;color:#b2bec3;line-height:1;margin-top:-4px}
-.sel-list{max-height:180px;overflow-y:auto;margin-bottom:14px}
+.sel-list{max-height:250px;overflow-y:auto;margin-bottom:14px}
 .sel-item{background:#f8f9fa;border-radius:8px;padding:12px;margin-bottom:8px}
-.sel-item-name{font-size:14px;font-weight:bold;margin-bottom:8px}
-.sel-row{display:flex;align-items:center;gap:10px}
+.sel-item-name{font-size:14px;font-weight:bold;margin-bottom:8px;color:#2d3436}
+.sel-item-stock{font-size:12px;color:#00b894;margin-bottom:8px}
+.sel-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
 .sel-row label{font-size:13px;color:#636e72;min-width:40px}
 .sel-qty{width:80px;padding:8px;border:2px solid #ddd;border-radius:8px;font-size:15px;text-align:center}
 .sel-unit{flex:1;padding:8px;border:2px solid #ddd;border-radius:8px;font-size:14px;background:#fff}
 .team-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px}
 .team-btn{padding:11px 4px;border:2px solid #ddd;border-radius:8px;background:#fff;cursor:pointer;font-size:13px;font-weight:bold;color:#636e72;text-align:center}
 .team-btn.on{border-color:#e17055;background:#e17055;color:#fff}
-.confirm-btn{width:100%;padding:15px;background:#00b894;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer}
+.confirm-btn{width:100%;padding:15px;background:#00b894;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;margin-top:8px}
 .confirm-btn.danger{background:#e17055}
 .confirm-btn.purple{background:#6c5ce7}
-
-/* ── 거래내역 ── */
 .tx-item{padding:12px 14px;border-bottom:1px solid #f0f4f8}
 .tx-head{display:flex;align-items:center;gap:8px;margin-bottom:4px}
 .tx-badge{padding:2px 8px;border-radius:10px;font-size:11px;font-weight:bold}
@@ -91,8 +75,6 @@ body{font-family:-apple-system,sans-serif;background:#f0f4f8;min-height:100vh}
 .tx-badge.반납{background:#e8e4ff;color:#6c5ce7}
 .tx-name{font-size:14px;font-weight:bold}
 .tx-info{font-size:12px;color:#b2bec3}
-
-/* ── 회원관리 ── */
 .user-card{background:#fff;border-radius:10px;padding:14px;margin-bottom:8px;border-left:4px solid #ddd}
 .user-card.pending{border-color:#f39c12}
 .user-card.approved{border-color:#00b894}
@@ -103,13 +85,10 @@ body{font-family:-apple-system,sans-serif;background:#f0f4f8;min-height:100vh}
 .ubtn.approve{background:#00b894}
 .ubtn.reject{background:#e17055}
 .ubtn.delete{background:#b2bec3}
-
-/* ── 공통 ── */
 .loading{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;align-items:center;justify-content:center}
 .loading.show{display:flex}
 .loading-box{background:#fff;border-radius:12px;padding:24px 36px;font-size:16px;font-weight:bold;color:#2d3436}
-.empty{text-align:center;padding:50px 20px;color:#b2bec3}
-.empty-icon{font-size:40px;margin-bottom:10px}
+.empty{text-align:center;padding:50px 20px;color:#b2bec3;font-size:14px}
 </style>
 </head>
 <body>
@@ -121,23 +100,20 @@ body{font-family:-apple-system,sans-serif;background:#f0f4f8;min-height:100vh}
 
 <!-- 로그인 -->
 <div id="loginScreen">
-<div class="auth-wrap">
-<div class="auth-box">
+<div class="auth-wrap"><div class="auth-box">
   <div class="auth-logo">📦</div>
   <div class="auth-title">소모품관리</div>
-  <div class="auth-sub">로그인하세요</div>
+  <div class="auth-sub">사번과 비밀번호를 입력하세요</div>
   <input class="auth-input" id="loginId" placeholder="사번" type="text">
   <input class="auth-input" id="loginPw" placeholder="비밀번호" type="password" onkeydown="if(event.key==='Enter')doLogin()">
   <button class="auth-btn" onclick="doLogin()">로그인</button>
   <button class="auth-btn sub" onclick="showReg()">회원가입</button>
-</div>
-</div>
+</div></div>
 </div>
 
 <!-- 회원가입 -->
 <div id="regScreen" style="display:none">
-<div class="auth-wrap">
-<div class="auth-box">
+<div class="auth-wrap"><div class="auth-box">
   <div class="auth-logo">✍️</div>
   <div class="auth-title">회원가입</div>
   <div class="auth-sub">정보를 입력하세요</div>
@@ -158,8 +134,7 @@ body{font-family:-apple-system,sans-serif;background:#f0f4f8;min-height:100vh}
   </select>
   <button class="auth-btn" onclick="doRegister()">가입 신청</button>
   <button class="auth-btn sub" onclick="showLogin()">← 로그인으로</button>
-</div>
-</div>
+</div></div>
 </div>
 
 <!-- 메인 앱 -->
@@ -170,7 +145,7 @@ body{font-family:-apple-system,sans-serif;background:#f0f4f8;min-height:100vh}
       <div id="headerSub" style="font-size:11px;opacity:.85"></div>
     </div>
     <div class="header-right">
-      <button id="adminBtn" class="hbtn" style="background:rgba(255,255,255,.3);color:#fff;display:none" onclick="switchTab('관리자')">👥 회원관리</button>
+      <button id="adminBtn" class="hbtn" style="background:rgba(255,255,255,.3);color:#fff;display:none" onclick="switchTab('관리자')">👥 관리자</button>
       <button class="hbtn" style="background:#fff;color:#00b894" onclick="reload()">🔄</button>
       <button class="hbtn" style="background:rgba(255,255,255,.25);color:#fff" onclick="doLogout()">로그아웃</button>
     </div>
@@ -189,58 +164,97 @@ body{font-family:-apple-system,sans-serif;background:#f0f4f8;min-height:100vh}
 </div>
 
 <script>
-// ── 설정 ──────────────────────────────────────────────
-const API = 'https://script.google.com/macros/s/AKfycbw6J-NIAmA8TiWxGgrGsuHWhA0qeka4cAujK6x0Mwu_QFJ-a3YhP6JPkzRx3UR5f2G8/exec';
+const API   = 'https://script.google.com/macros/s/AKfycbzBvLVu2EyKbUbuiU8gASLHj_pGn6xwhPr2eZQmVLuif-s1xL2vr5sW369c9gPwbIxZ/exec';
 const ADMIN = '218062';
 const TABS  = ['창고','화성','수원','평택','2팀','3팀','4팀','5팀','6팀','거래내역'];
-const UNITS = ['EA','PK','BX'];
 
-let user = null, tab = '창고', items = [], teamStocks = {}, txs = [], sel = new Map();
+let user=null, tab='창고', items=[], teamStocks={}, txs=[], sel=new Map();
 
-// ── 유틸 ──────────────────────────────────────────────
-function loading(s){ document.getElementById('loading').classList.toggle('show',s); }
-async function api(body){
-  const r = await fetch(API,{method:'POST',body:JSON.stringify(body)});
-  return r.json();
+// ── 단위 변환 ───────────────────────────────────────
+function parseRates(memo) {
+  // memo 예: "1BX=12EA" 또는 "1BX=4PK 1PK=6EA"
+  const rates = {BX:null, PK:null};
+  if (!memo) return rates;
+  const bxEa = memo.match(/1\s*BX\s*[=×x]\s*(\d+)\s*EA/i);
+  if (bxEa) rates.BX = parseInt(bxEa[1]);
+  const pkEa = memo.match(/1\s*PK\s*[=×x]\s*(\d+)\s*EA/i);
+  if (pkEa) rates.PK = parseInt(pkEa[1]);
+  const bxPk = memo.match(/1\s*BX\s*[=×x]\s*(\d+)\s*PK/i);
+  if (bxPk && rates.PK) rates.BX = parseInt(bxPk[1]) * rates.PK;
+  return rates;
 }
-async function apiGet(action){
-  const r = await fetch(API+'?action='+action+'&t='+Date.now());
-  return r.json();
+
+function toEA(qty, unit, rates) {
+  if (unit==='BX' && rates.BX) return qty * rates.BX;
+  if (unit==='PK' && rates.PK) return qty * rates.PK;
+  return qty;
 }
 
-// ── 인증 ──────────────────────────────────────────────
-function showLogin(){ document.getElementById('regScreen').style.display='none'; document.getElementById('loginScreen').style.display='block'; }
-function showReg()  { document.getElementById('loginScreen').style.display='none'; document.getElementById('regScreen').style.display='block'; }
+function eaToDisplay(ea, rates, baseUnit) {
+  if (!rates.BX && !rates.PK) return ea + ' ' + (baseUnit||'EA');
+  let rem = Math.max(0, ea);
+  const parts = [];
+  if (rates.BX && rem >= rates.BX) {
+    const bx = Math.floor(rem / rates.BX);
+    rem = rem % rates.BX;
+    if (bx>0) parts.push(bx+'BX');
+  }
+  if (rates.PK && rem >= rates.PK) {
+    const pk = Math.floor(rem / rates.PK);
+    rem = rem % rates.PK;
+    if (pk>0) parts.push(pk+'PK');
+  }
+  if (rem>0 || parts.length===0) parts.push(rem+'EA');
+  return parts.join(' ');
+}
+
+function getAvailUnits(rates) {
+  const u = ['EA'];
+  if (rates.PK) u.push('PK');
+  if (rates.BX) u.push('BX');
+  return u;
+}
+
+// ── 인증 ─────────────────────────────────────────────
+function showLogin(){ s('regScreen','none'); s('loginScreen','block'); }
+function showReg()  { s('loginScreen','none'); s('regScreen','block'); }
+function s(id,v){ document.getElementById(id).style.display=v; }
+function loading(v){ document.getElementById('loading').classList.toggle('show',v); }
 
 async function doLogin(){
-  const empId=document.getElementById('loginId').value.trim();
-  const pass =document.getElementById('loginPw').value;
+  const empId=v('loginId'), pass=v('loginPw');
   if(!empId||!pass){alert('사번과 비밀번호를 입력하세요');return;}
   loading(true);
   try{
-    const r=await api({action:'login',empId,pass});
+    const r=await post({action:'login',empId,pass});
     if(r.success){
       user=r.user; user.password=pass;
       localStorage.setItem('invUser',JSON.stringify(user));
       startApp();
     } else { alert(r.error||'로그인 실패'); }
-  } catch(e){alert('서버 오류');}
+  }catch(e){alert('서버 오류: '+e.message);}
   finally{loading(false);}
 }
 
 async function doRegister(){
-  const name=document.getElementById('regName').value.trim();
-  const empId=document.getElementById('regId').value.trim();
-  const pass =document.getElementById('regPw').value;
-  const team =document.getElementById('regTeam').value;
+  const name=v('regName'), empId=v('regId'), pass=v('regPw'), team=v('regTeam');
   if(!name||!empId||!pass||!team){alert('모든 항목을 입력하세요');return;}
   loading(true);
   try{
-    const r=await api({action:'register',empId,name,pass,team});
-    alert(r.message||'완료');
-    if(r.user){ user=r.user; user.password=pass; localStorage.setItem('invUser',JSON.stringify(user)); startApp(); }
-    else showLogin();
-  } catch(e){alert('서버 오류');}
+    const r=await post({action:'register',empId,name,pass,team});
+    if(r.success){
+      alert(r.message||'완료');
+      if(r.user){
+        // 관리자는 바로 로그인
+        user=r.user; user.password=pass;
+        localStorage.setItem('invUser',JSON.stringify(user));
+        startApp();
+      } else {
+        // 대기자는 로그인 화면으로
+        showLogin();
+      }
+    } else { alert(r.error||'가입 실패'); }
+  }catch(e){alert('서버 오류: '+e.message);}
   finally{loading(false);}
 }
 
@@ -248,36 +262,36 @@ function doLogout(){
   if(!confirm('로그아웃 하시겠습니까?'))return;
   localStorage.removeItem('invUser');
   user=null; sel.clear();
-  document.getElementById('app').style.display='none';
-  document.getElementById('loginScreen').style.display='block';
+  s('app','none'); s('loginScreen','block');
+  document.getElementById('loginId').value='';
+  document.getElementById('loginPw').value='';
 }
 
 // ── 앱 시작 ───────────────────────────────────────────
 function startApp(){
-  document.getElementById('loginScreen').style.display='none';
-  document.getElementById('regScreen').style.display='none';
-  document.getElementById('app').style.display='block';
+  s('loginScreen','none'); s('regScreen','none'); s('app','block');
   document.getElementById('headerSub').textContent=user.name+' · '+user.team;
   if(String(user.empId)===ADMIN) document.getElementById('adminBtn').style.display='block';
-  buildTabs();
-  loadData(false);
+  buildTabs(); loadData(false);
 }
 
 function buildTabs(){
   const all=[...TABS];
   if(String(user.empId)===ADMIN) all.push('관리자');
   document.getElementById('tabs').innerHTML=all.map(t=>
-    `<button class="tab${t===tab?' active':''}" onclick="switchTab('${t}')">${t==='창고'?'🏭 창고':t==='거래내역'?'📋 거래':t==='관리자'?'👥 관리자':t}</button>`
+    `<button class="tab${t===tab?' active':''}" onclick="switchTab('${t}')">${
+      t==='창고'?'🏭 창고':t==='거래내역'?'📋 거래':t==='관리자'?'👥 관리자':t}</button>`
   ).join('');
 }
 
 function switchTab(t){
   tab=t; sel.clear(); buildTabs();
-  document.getElementById('searchWrap').style.display=(t==='거래내역'||t==='관리자')?'none':'block';
+  const hide=t==='거래내역'||t==='관리자';
+  document.getElementById('searchWrap').style.display=hide?'none':'block';
   render(); updateBar();
 }
 
-// ── 데이터 로드 ───────────────────────────────────────
+// ── 데이터 ───────────────────────────────────────────
 async function loadData(force){
   if(!force){
     const c=localStorage.getItem('invCache');
@@ -285,7 +299,8 @@ async function loadData(force){
   }
   loading(true);
   try{
-    const d=await apiGet('getAll');
+    const res=await fetch(API+'?action=getAll&t='+Date.now());
+    const d=await res.json();
     items=d.items||[]; teamStocks=d.teamStocks||{}; txs=d.transactions||[];
     localStorage.setItem('invCache',JSON.stringify({items,ts:teamStocks,txs,t:Date.now()}));
     render();
@@ -301,52 +316,53 @@ function render(){
   if(tab==='거래내역'){ renderTx(el); return; }
   if(tab==='관리자'){ renderAdmin(el); return; }
 
-  const q=(document.getElementById('searchInput').value||'').toLowerCase();
-  let list=items.map(i=>{
-    let qty;
-    if(tab==='창고') qty=i.quantity;
-    else qty=(teamStocks[tab]||{})[i.name]||0;
-    return{...i,qty};
-  });
-  if(q) list=list.filter(i=>i.name.toLowerCase().includes(q));
+  const q=(v('searchInput')||'').toLowerCase();
+  const list=items.map(i=>{
+    const rates=parseRates(i.memo);
+    let eaQty;
+    if(tab==='창고'){ eaQty=i.eaQty; }
+    else {
+      const ts=teamStocks[tab];
+      eaQty=ts&&ts[i.name]?ts[i.name].eaQty:0;
+    }
+    return{...i,eaQty,rates,display:eaToDisplay(eaQty,rates,i.unit)};
+  }).filter(i=>!q||i.name.toLowerCase().includes(q));
 
-  if(!list.length){ el.innerHTML='<div class="empty"><div class="empty-icon">📭</div>물품이 없습니다</div>'; return; }
+  if(!list.length){ el.innerHTML='<div class="empty">📭 물품이 없습니다</div>'; return; }
 
   el.innerHTML='<div class="item-list">'+list.map(i=>{
-    const qc=i.qty>0?'pos':i.qty<0?'neg':'zero';
+    const pos=i.eaQty>0, neg=i.eaQty<0;
+    const qc=pos?'pos':neg?'neg':'zero';
     const checked=sel.has(i.name)?'checked':'';
-    return `<div class="item-card">
-      <div class="item-row">
-        <input type="checkbox" class="item-check" onchange="toggleSel(this,'${i.name.replace(/'/g,"\\'")}','${i.unit}')" ${checked}>
-        <div class="item-info">
-          <div class="item-name">${i.name}</div>
-          ${i.memo?`<div class="item-memo">${i.memo}</div>`:''}
-        </div>
-        <div class="item-qty-wrap">
-          <div class="item-qty ${qc}">${i.qty}</div>
-          <div class="item-unit">${i.unit}</div>
-        </div>
+    const nm=i.name.replace(/'/g,"\\'");
+    return `<div class="item-card"><div class="item-row">
+      <input type="checkbox" class="item-check" onchange="toggleSel(this,'${nm}','${i.unit}','${i.memo||''}')" ${checked}>
+      <div class="item-info">
+        <div class="item-name">${i.name}</div>
+        ${i.memo?`<div class="item-memo">📝 ${i.memo}</div>`:''}
       </div>
-    </div>`;
+      <div class="item-qty-wrap">
+        <div class="item-qty ${qc}">${i.display}</div>
+      </div>
+    </div></div>`;
   }).join('')+'</div>';
   updateBar();
 }
 
 function renderTx(el){
-  if(!txs.length){ el.innerHTML='<div class="empty"><div class="empty-icon">📋</div>거래 내역이 없습니다</div>'; return; }
-  el.innerHTML='<div class="item-list">'+txs.map(t=>
-    `<div class="item-card"><div class="tx-item">
+  if(!txs.length){ el.innerHTML='<div class="empty">📋 거래내역 없음</div>'; return; }
+  el.innerHTML='<div class="item-list">'+txs.map(t=>`
+    <div class="item-card"><div class="tx-item">
       <div class="tx-head"><span class="tx-badge ${t.type}">${t.type}</span><span class="tx-name">${t.item}</span></div>
-      <div class="tx-info">${t.qty}${t.unit} · ${t.from} → ${t.to} · ${t.user}</div>
-      <div class="tx-info">${t.date}</div>
-    </div></div>`
-  ).join('')+'</div>';
+      <div class="tx-info">${t.inputQty||t.qty}${t.unit||'EA'} · ${t.from||''} → ${t.to||''} · ${t.user||''}</div>
+      <div class="tx-info">${t.date||''}</div>
+    </div></div>`).join('')+'</div>';
 }
 
 async function renderAdmin(el){
   loading(true);
   try{
-    const r=await api({action:'getUsers'});
+    const r=await post({action:'getUsers'});
     if(!r.success){el.innerHTML='<div class="empty">오류</div>';return;}
     const pending=r.users.filter(u=>u.status==='대기');
     const approved=r.users.filter(u=>u.status==='승인');
@@ -358,7 +374,7 @@ async function renderAdmin(el){
         <div class="user-info">${u.team}</div>
         <div class="user-btns">
           <button class="ubtn approve" onclick="approveUser('${u.empId}')">승인</button>
-          <button class="ubtn reject"  onclick="deleteUserAction('${u.empId}','${u.name}')">거부</button>
+          <button class="ubtn reject" onclick="delUser('${u.empId}','${u.name}')">거부</button>
         </div></div>`).join('');
     }
     if(approved.length){
@@ -366,9 +382,8 @@ async function renderAdmin(el){
       html+=approved.map(u=>`<div class="user-card approved">
         <div class="user-name">${u.name} <span style="font-size:12px;color:#b2bec3">(${u.empId})</span></div>
         <div class="user-info">${u.team}</div>
-        <div class="user-btns">
-          <button class="ubtn delete" onclick="deleteUserAction('${u.empId}','${u.name}')">삭제</button>
-        </div></div>`).join('');
+        <div class="user-btns"><button class="ubtn delete" onclick="delUser('${u.empId}','${u.name}')">삭제</button></div>
+      </div>`).join('');
     }
     el.innerHTML=html+'</div>';
   }finally{loading(false);}
@@ -377,69 +392,74 @@ async function renderAdmin(el){
 async function approveUser(empId){
   if(!confirm('승인하시겠습니까?'))return;
   loading(true);
-  const r=await api({action:'approveUser',empId});
+  const r=await post({action:'approveUser',empId});
   loading(false);
-  if(r.success){alert('승인 완료');switchTab('관리자');}
-  else alert(r.error);
+  if(r.success){alert('승인 완료');switchTab('관리자');}else alert(r.error);
 }
-async function deleteUserAction(empId,name){
+async function delUser(empId,name){
   if(!confirm(name+' 삭제하시겠습니까?'))return;
   loading(true);
-  const r=await api({action:'deleteUser',empId});
+  const r=await post({action:'deleteUser',empId});
   loading(false);
-  if(r.success){alert('삭제 완료');switchTab('관리자');}
-  else alert(r.error);
+  if(r.success){alert('삭제 완료');switchTab('관리자');}else alert(r.error);
 }
 
 // ── 선택 ─────────────────────────────────────────────
-function toggleSel(cb,name,unit){
-  if(cb.checked) sel.set(name,{name,unit,qty:1});
+function toggleSel(cb,name,unit,memo){
+  if(cb.checked) sel.set(name,{name,unit,memo});
   else sel.delete(name);
   updateBar();
 }
 
 function updateBar(){
   const bar=document.getElementById('actionBar');
-  const btnIn=document.getElementById('btnIn');
-  const btnOut=document.getElementById('btnOut');
-  const btnRet=document.getElementById('btnRet');
   if(sel.size===0||tab==='거래내역'||tab==='관리자'){bar.classList.add('hidden');return;}
   bar.classList.remove('hidden');
-  if(tab==='창고'){
-    btnIn.style.display='block'; btnOut.style.display='block'; btnRet.style.display='none';
-  } else {
-    btnIn.style.display='none'; btnOut.style.display='none'; btnRet.style.display='block';
-  }
+  document.getElementById('btnIn').style.display=tab==='창고'?'block':'none';
+  document.getElementById('btnOut').style.display=tab==='창고'?'block':'none';
+  document.getElementById('btnRet').style.display=tab!=='창고'?'block':'none';
 }
 
 // ── 입고 모달 ────────────────────────────────────────
 function openIn(){
   const rows=Array.from(sel.values());
-  document.getElementById('modal').innerHTML=`
-    <span class="modal-close" onclick="closeModal()">×</span>
+  let html=`<span class="modal-close" onclick="closeModal()">×</span>
     <div class="modal-title">📥 창고 입고</div>
     <div class="modal-sub">수량과 단위를 입력하세요</div>
-    <div class="sel-list">${rows.map(i=>`
-      <div class="sel-item">
-        <div class="sel-item-name">${i.name}</div>
-        <div class="sel-row">
-          <label>수량</label>
-          <input type="number" class="sel-qty" id="q_${esc(i.name)}" value="1" min="1">
-          <select class="sel-unit" id="u_${esc(i.name)}">
-            ${UNITS.map(u=>`<option value="${u}" ${u===i.unit?'selected':''}>${u}</option>`).join('')}
-          </select>
-        </div>
-      </div>`).join('')}</div>
-    <button class="confirm-btn" onclick="doIn()">입고 확인</button>`;
+    <div class="sel-list">`;
+  rows.forEach(i=>{
+    const item=items.find(x=>x.name===i.name)||{};
+    const rates=parseRates(i.memo);
+    const units=getAvailUnits(rates);
+    const cur=eaToDisplay(item.eaQty||0,rates,i.unit);
+    html+=`<div class="sel-item">
+      <div class="sel-item-name">${i.name}</div>
+      <div class="sel-item-stock">현재 창고: ${cur}</div>
+      <div class="sel-row">
+        <label>수량</label>
+        <input type="number" class="sel-qty" id="q_${eid(i.name)}" value="1" min="1">
+        <select class="sel-unit" id="u_${eid(i.name)}">
+          ${units.map(u=>`<option value="${u}" ${u===i.unit?'selected':''}>${u}</option>`).join('')}
+        </select>
+      </div></div>`;
+  });
+  html+=`</div><button class="confirm-btn" onclick="doIn()">입고 확인</button>`;
+  document.getElementById('modal').innerHTML=html;
   showModal();
 }
 
 async function doIn(){
   const rows=Array.from(sel.values());
-  const itms=rows.map(i=>({name:i.name,unit:document.getElementById('u_'+esc(i.name)).value,qty:Number(document.getElementById('q_'+esc(i.name)).value)}));
+  const itms=rows.map(i=>{
+    const rates=parseRates(i.memo);
+    const qty=Number(document.getElementById('q_'+eid(i.name)).value)||1;
+    const unit=document.getElementById('u_'+eid(i.name)).value;
+    const eaQty=toEA(qty,unit,rates);
+    return{name:i.name,unit:i.unit,memo:i.memo,inputQty:qty,inputUnit:unit,eaQty};
+  });
   closeModal(); loading(true);
   try{
-    const r=await api({action:'warehouseIn',items:itms,user:user.name});
+    const r=await post({action:'warehouseIn',items:itms,user:user.name});
     if(r.success){sel.clear();await reload();alert('입고 완료!');}
     else alert('오류: '+r.error);
   }finally{loading(false);}
@@ -448,30 +468,37 @@ async function doIn(){
 // ── 출고 모달 ────────────────────────────────────────
 function openOut(){
   const rows=Array.from(sel.values());
-  document.getElementById('modal').innerHTML=`
-    <span class="modal-close" onclick="closeModal()">×</span>
+  let html=`<span class="modal-close" onclick="closeModal()">×</span>
     <div class="modal-title">📤 창고 출고</div>
     <div class="modal-sub">수량·단위·목적팀을 선택하세요</div>
-    <div class="sel-list">${rows.map(i=>`
-      <div class="sel-item">
-        <div class="sel-item-name">${i.name}</div>
-        <div class="sel-row">
-          <label>수량</label>
-          <input type="number" class="sel-qty" id="q_${esc(i.name)}" value="1" min="1">
-          <select class="sel-unit" id="u_${esc(i.name)}">
-            ${UNITS.map(u=>`<option value="${u}" ${u===i.unit?'selected':''}>${u}</option>`).join('')}
-          </select>
-        </div>
-      </div>`).join('')}</div>
+    <div class="sel-list">`;
+  rows.forEach(i=>{
+    const item=items.find(x=>x.name===i.name)||{};
+    const rates=parseRates(i.memo);
+    const units=getAvailUnits(rates);
+    const cur=eaToDisplay(item.eaQty||0,rates,i.unit);
+    html+=`<div class="sel-item">
+      <div class="sel-item-name">${i.name}</div>
+      <div class="sel-item-stock">현재 창고: ${cur}</div>
+      <div class="sel-row">
+        <label>수량</label>
+        <input type="number" class="sel-qty" id="q_${eid(i.name)}" value="1" min="1">
+        <select class="sel-unit" id="u_${eid(i.name)}">
+          ${units.map(u=>`<option value="${u}" ${u===i.unit?'selected':''}>${u}</option>`).join('')}
+        </select>
+      </div></div>`;
+  });
+  html+=`</div>
     <div style="font-weight:bold;margin-bottom:8px;font-size:14px">목적지 팀</div>
     <div class="team-grid">
       ${['화성','수원','평택','2팀','3팀','4팀','5팀','6팀'].map(t=>`<button class="team-btn" onclick="selTeam(this,'${t}')">${t}</button>`).join('')}
     </div>
     <button class="confirm-btn danger" onclick="doOut()">출고 확인</button>`;
+  document.getElementById('modal').innerHTML=html;
   showModal();
 }
 
-function selTeam(el,t){
+function selTeam(el){
   document.querySelectorAll('.team-btn').forEach(b=>b.classList.remove('on'));
   el.classList.add('on');
 }
@@ -481,10 +508,15 @@ async function doOut(){
   if(!teamEl){alert('팀을 선택하세요');return;}
   const team=teamEl.textContent;
   const rows=Array.from(sel.values());
-  const itms=rows.map(i=>({name:i.name,unit:document.getElementById('u_'+esc(i.name)).value,qty:Number(document.getElementById('q_'+esc(i.name)).value)}));
+  const itms=rows.map(i=>{
+    const rates=parseRates(i.memo);
+    const qty=Number(document.getElementById('q_'+eid(i.name)).value)||1;
+    const unit=document.getElementById('u_'+eid(i.name)).value;
+    return{name:i.name,unit:i.unit,memo:i.memo,inputQty:qty,inputUnit:unit,eaQty:toEA(qty,unit,rates)};
+  });
   closeModal(); loading(true);
   try{
-    const r=await api({action:'warehouseOut',items:itms,team,user:user.name});
+    const r=await post({action:'warehouseOut',items:itms,team,user:user.name});
     if(r.success){sel.clear();await reload();alert(team+'으로 출고 완료!');}
     else alert('오류: '+r.error);
   }finally{loading(false);}
@@ -493,40 +525,54 @@ async function doOut(){
 // ── 반납 모달 ────────────────────────────────────────
 function openRet(){
   const rows=Array.from(sel.values());
-  document.getElementById('modal').innerHTML=`
-    <span class="modal-close" onclick="closeModal()">×</span>
+  let html=`<span class="modal-close" onclick="closeModal()">×</span>
     <div class="modal-title">↩️ 창고 반납</div>
-    <div class="modal-sub">${tab} → 창고</div>
-    <div class="sel-list">${rows.map(i=>`
-      <div class="sel-item">
-        <div class="sel-item-name">${i.name}</div>
-        <div class="sel-row">
-          <label>수량</label>
-          <input type="number" class="sel-qty" id="q_${esc(i.name)}" value="1" min="1">
-          <select class="sel-unit" id="u_${esc(i.name)}">
-            ${UNITS.map(u=>`<option value="${u}" ${u===i.unit?'selected':''}>${u}</option>`).join('')}
-          </select>
-        </div>
-      </div>`).join('')}</div>
-    <button class="confirm-btn purple" onclick="doRet()">반납 확인</button>`;
+    <div class="modal-sub">${tab} → 창고로 반납</div>
+    <div class="sel-list">`;
+  rows.forEach(i=>{
+    const rates=parseRates(i.memo);
+    const units=getAvailUnits(rates);
+    const ts=teamStocks[tab];
+    const eaQty=ts&&ts[i.name]?ts[i.name].eaQty:0;
+    const cur=eaToDisplay(eaQty,rates,i.unit);
+    html+=`<div class="sel-item">
+      <div class="sel-item-name">${i.name}</div>
+      <div class="sel-item-stock">보유: ${cur}</div>
+      <div class="sel-row">
+        <label>수량</label>
+        <input type="number" class="sel-qty" id="q_${eid(i.name)}" value="1" min="1">
+        <select class="sel-unit" id="u_${eid(i.name)}">
+          ${units.map(u=>`<option value="${u}" ${u===i.unit?'selected':''}>${u}</option>`).join('')}
+        </select>
+      </div></div>`;
+  });
+  html+=`</div><button class="confirm-btn purple" onclick="doRet()">반납 확인</button>`;
+  document.getElementById('modal').innerHTML=html;
   showModal();
 }
 
 async function doRet(){
   const rows=Array.from(sel.values());
-  const itms=rows.map(i=>({name:i.name,unit:document.getElementById('u_'+esc(i.name)).value,qty:Number(document.getElementById('q_'+esc(i.name)).value)}));
+  const itms=rows.map(i=>{
+    const rates=parseRates(i.memo);
+    const qty=Number(document.getElementById('q_'+eid(i.name)).value)||1;
+    const unit=document.getElementById('u_'+eid(i.name)).value;
+    return{name:i.name,unit:i.unit,memo:i.memo,inputQty:qty,inputUnit:unit,eaQty:toEA(qty,unit,rates)};
+  });
   closeModal(); loading(true);
   try{
-    const r=await api({action:'teamReturn',items:itms,team:tab,user:user.name});
+    const r=await post({action:'teamReturn',items:itms,team:tab,user:user.name});
     if(r.success){sel.clear();await reload();alert('반납 완료!');}
     else alert('오류: '+r.error);
   }finally{loading(false);}
 }
 
-// ── 유틸 ──────────────────────────────────────────────
-function esc(s){ return s.replace(/[^a-zA-Z0-9가-힣]/g,'_'); }
+// ── 유틸 ─────────────────────────────────────────────
+function v(id){ return document.getElementById(id)?.value?.trim()||''; }
+function eid(s){ return s.replace(/[^a-zA-Z0-9가-힣]/g,'_'); }
 function showModal(){ document.getElementById('modalBg').classList.add('show'); }
 function closeModal(){ document.getElementById('modalBg').classList.remove('show'); }
+async function post(body){ const r=await fetch(API,{method:'POST',body:JSON.stringify(body)}); return r.json(); }
 
 // ── 초기화 ───────────────────────────────────────────
 window.onload=function(){
