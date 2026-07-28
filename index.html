@@ -183,17 +183,17 @@ body{font-family:-apple-system,sans-serif;background:#f0f4f8}
 </div>
 
 <script>
-const API   = 'https://script.google.com/macros/s/AKfycbyhywzdGrumsGhZO6eW8cm3Uv9HTa7whNEgeztK-SAB1srUcONZ8Om3cPod2jGu2qCV/exec';
+const API   = 'https://script.google.com/macros/s/AKfycbzSLBvyquMRMjODtIIElsfiL0QLZh1mn0X0A34S4oJ0BqELmLmwrT_VrWm78jTHJ1Qg/exec';
 const ADMIN = '218062';
 const TABS  = ['창고','화성','수원','평택','2팀','3팀','4팀','5팀','6팀','거래내역'];
-const CATS  = ['전체','채혈채뇨','공용물품','청력','HRV','EKG','폐활량'];
+const CATS  = ['채혈채뇨','공용물품','청력','HRV','EKG','폐활량','전체'];
 const CAT_COLORS = {
   '채혈채뇨':'#e74c3c','공용물품':'#636e72','청력':'#f39c12',
   'HRV':'#3498db','EKG':'#9b59b6','폐활량':'#7f8c8d','전체':'#00b894'
 };
 const UNITS = ['EA','PK','BX'];
 
-let user=null, tab='창고', selCat='전체', items=[], teamStocks={}, txs=[], sel=new Map();
+let user=null, tab='창고', selCat='채혈채뇨', items=[], teamStocks={}, txs=[], sel=new Map();
 
 // ── 단위 변환 ─────────────────────────────────────
 function parseRates(memo) {
@@ -294,7 +294,7 @@ function buildCatBar(){
 }
 
 function switchTab(t){
-  tab=t; sel.clear(); selCat='전체'; buildTabs(); buildCatBar();
+  tab=t; sel.clear(); selCat='채혈채뇨'; buildTabs(); buildCatBar();
   const hide=t==='거래내역'||t==='관리자';
   g('searchWrap').style.display=hide?'none':'block';
   render(); updateBar();
