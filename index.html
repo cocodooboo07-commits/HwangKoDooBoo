@@ -25,9 +25,29 @@ body{font-family:-apple-system,sans-serif;background:#f0f4f8}
 .tabs::-webkit-scrollbar{display:none}
 .tab{flex-shrink:0;padding:8px 14px;background:#f0f4f8;border:none;border-radius:20px;cursor:pointer;font-size:13px;font-weight:bold;color:#636e72}
 .tab.active{background:#00b894;color:#fff}
+
+/* 카테고리 필터 */
+.cat-bar{display:flex;overflow-x:auto;gap:6px;padding:8px 10px;background:#f8f9fa;border-bottom:1px solid #eee;-webkit-overflow-scrolling:touch}
+.cat-bar::-webkit-scrollbar{display:none}
+.cat-btn{flex-shrink:0;padding:7px 14px;border:2px solid #ddd;border-radius:20px;background:#fff;cursor:pointer;font-size:12px;font-weight:bold;color:#636e72;white-space:nowrap}
+.cat-btn.active{color:#fff;border-color:transparent}
+.cat-btn[data-cat="전체"]{border-color:#00b894;color:#00b894}
+.cat-btn[data-cat="전체"].active{background:#00b894;color:#fff}
+.cat-btn[data-cat="채혈채뇨"].active{background:#e74c3c}
+.cat-btn[data-cat="공용물품"].active{background:#636e72}
+.cat-btn[data-cat="청력"].active{background:#f39c12}
+.cat-btn[data-cat="HRV"].active{background:#3498db}
+.cat-btn[data-cat="EKG"].active{background:#9b59b6}
+.cat-btn[data-cat="폐활량"].active{background:#7f8c8d}
+
 .search-wrap{padding:8px 10px;background:#fff;border-bottom:1px solid #eee}
 .search-input{width:100%;padding:10px 14px;border:1px solid #ddd;border-radius:8px;font-size:14px;outline:none}
 .item-list{padding:10px}
+
+/* 카테고리 그룹 헤더 */
+.cat-group-header{padding:10px 4px 6px;font-size:13px;font-weight:bold;color:#636e72;display:flex;align-items:center;gap:6px}
+.cat-dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+
 .item-card{background:#fff;border-radius:10px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
 .item-row{display:flex;align-items:center;padding:13px 14px}
 .item-check{width:22px;height:22px;margin-right:12px;cursor:pointer;flex-shrink:0;accent-color:#00b894}
@@ -39,7 +59,7 @@ body{font-family:-apple-system,sans-serif;background:#f0f4f8}
 .item-qty.pos{color:#00b894}
 .item-qty.neg{color:#e17055}
 .item-qty.zero{color:#b2bec3}
-.item-unit-label{font-size:11px;color:#b2bec3;margin-top:1px}
+
 .action-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;padding:12px 10px;border-top:2px solid #eee;display:flex;gap:8px;z-index:40}
 .action-bar.hidden{display:none}
 .abtn{flex:1;padding:14px 8px;border:none;border-radius:10px;font-size:14px;font-weight:bold;cursor:pointer;color:#fff}
@@ -53,12 +73,12 @@ body{font-family:-apple-system,sans-serif;background:#f0f4f8}
 .modal-title{font-size:17px;font-weight:bold;margin-bottom:4px}
 .modal-sub{font-size:13px;color:#636e72;margin-bottom:16px}
 .modal-close{float:right;font-size:26px;cursor:pointer;color:#b2bec3;line-height:1;margin-top:-4px}
-.sel-list{max-height:250px;overflow-y:auto;margin-bottom:14px}
+.sel-list{max-height:300px;overflow-y:auto;margin-bottom:14px}
 .sel-item{background:#f8f9fa;border-radius:8px;padding:12px;margin-bottom:8px}
-.sel-item-name{font-size:14px;font-weight:bold;margin-bottom:8px;color:#2d3436}
+.sel-item-name{font-size:14px;font-weight:bold;margin-bottom:6px;color:#2d3436}
 .sel-item-stock{font-size:12px;color:#00b894;margin-bottom:8px}
-.sel-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-.sel-row label{font-size:13px;color:#636e72;min-width:40px}
+.sel-row{display:flex;align-items:center;gap:8px}
+.sel-row label{font-size:13px;color:#636e72;min-width:36px}
 .sel-qty{width:80px;padding:8px;border:2px solid #ddd;border-radius:8px;font-size:15px;text-align:center}
 .sel-unit{flex:1;padding:8px;border:2px solid #ddd;border-radius:8px;font-size:14px;background:#fff}
 .team-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px}
@@ -73,8 +93,6 @@ body{font-family:-apple-system,sans-serif;background:#f0f4f8}
 .tx-badge.입고{background:#d5f5e3;color:#00b894}
 .tx-badge.출고{background:#fde8e8;color:#e17055}
 .tx-badge.반납{background:#e8e4ff;color:#6c5ce7}
-.tx-name{font-size:14px;font-weight:bold}
-.tx-info{font-size:12px;color:#b2bec3}
 .user-card{background:#fff;border-radius:10px;padding:14px;margin-bottom:8px;border-left:4px solid #ddd}
 .user-card.pending{border-color:#f39c12}
 .user-card.approved{border-color:#00b894}
@@ -151,6 +169,7 @@ body{font-family:-apple-system,sans-serif;background:#f0f4f8}
     </div>
   </div>
   <div class="tabs" id="tabs"></div>
+  <div id="catBar" class="cat-bar"></div>
   <div class="search-wrap" id="searchWrap">
     <input class="search-input" id="searchInput" placeholder="🔍 물품 검색..." oninput="render()">
   </div>
@@ -164,65 +183,56 @@ body{font-family:-apple-system,sans-serif;background:#f0f4f8}
 </div>
 
 <script>
-const API   = 'https://script.google.com/macros/s/AKfycbz4f9LUbl9t832D2Bcqs_c9u28xLax_F3KtofHdLr9jvngtrm3xiHfjPNt30XSmC1Ek/exec';
+const API   = 'https://script.google.com/macros/s/AKfycbyhywzdGrumsGhZO6eW8cm3Uv9HTa7whNEgeztK-SAB1srUcONZ8Om3cPod2jGu2qCV/exec';
 const ADMIN = '218062';
 const TABS  = ['창고','화성','수원','평택','2팀','3팀','4팀','5팀','6팀','거래내역'];
+const CATS  = ['전체','채혈채뇨','공용물품','청력','HRV','EKG','폐활량'];
+const CAT_COLORS = {
+  '채혈채뇨':'#e74c3c','공용물품':'#636e72','청력':'#f39c12',
+  'HRV':'#3498db','EKG':'#9b59b6','폐활량':'#7f8c8d','전체':'#00b894'
+};
+const UNITS = ['EA','PK','BX'];
 
-let user=null, tab='창고', items=[], teamStocks={}, txs=[], sel=new Map();
+let user=null, tab='창고', selCat='전체', items=[], teamStocks={}, txs=[], sel=new Map();
 
-// ── 단위 변환 ───────────────────────────────────────
+// ── 단위 변환 ─────────────────────────────────────
 function parseRates(memo) {
-  // memo 예: "1BX=12EA" 또는 "1BX=4PK 1PK=6EA"
-  const rates = {BX:null, PK:null};
-  if (!memo) return rates;
-  const bxEa = memo.match(/1\s*BX\s*[=×x]\s*(\d+)\s*EA/i);
-  if (bxEa) rates.BX = parseInt(bxEa[1]);
-  const pkEa = memo.match(/1\s*PK\s*[=×x]\s*(\d+)\s*EA/i);
-  if (pkEa) rates.PK = parseInt(pkEa[1]);
-  const bxPk = memo.match(/1\s*BX\s*[=×x]\s*(\d+)\s*PK/i);
-  if (bxPk && rates.PK) rates.BX = parseInt(bxPk[1]) * rates.PK;
-  return rates;
+  const r={BX:null,PK:null};
+  if(!memo) return r;
+  const bxEa=memo.match(/1\s*BX\s*[=×x]\s*(\d+)\s*EA/i);
+  if(bxEa) r.BX=parseInt(bxEa[1]);
+  const pkEa=memo.match(/1\s*PK\s*[=×x]\s*(\d+)\s*EA/i);
+  if(pkEa) r.PK=parseInt(pkEa[1]);
+  const bxPk=memo.match(/1\s*BX\s*[=×x]\s*(\d+)\s*PK/i);
+  if(bxPk&&r.PK) r.BX=parseInt(bxPk[1])*r.PK;
+  return r;
 }
 
-function toEA(qty, unit, rates) {
-  if (unit==='BX' && rates.BX) return qty * rates.BX;
-  if (unit==='PK' && rates.PK) return qty * rates.PK;
+function toEA(qty,unit,rates) {
+  if(unit==='BX') return qty*(rates.BX||1);
+  if(unit==='PK') return qty*(rates.PK||1);
   return qty;
 }
 
-function eaToDisplay(ea, rates, baseUnit) {
-  if (!rates.BX && !rates.PK) return ea + ' ' + (baseUnit||'EA');
-  let rem = Math.max(0, ea);
-  const parts = [];
-  if (rates.BX && rem >= rates.BX) {
-    const bx = Math.floor(rem / rates.BX);
-    rem = rem % rates.BX;
-    if (bx>0) parts.push(bx+'BX');
-  }
-  if (rates.PK && rem >= rates.PK) {
-    const pk = Math.floor(rem / rates.PK);
-    rem = rem % rates.PK;
-    if (pk>0) parts.push(pk+'PK');
-  }
-  if (rem>0 || parts.length===0) parts.push(rem+'EA');
+function eaToDisplay(ea,rates,baseUnit) {
+  const n=Math.max(0,Number(ea)||0);
+  if(!rates.BX&&!rates.PK) return n+(baseUnit?' '+baseUnit:'EA');
+  let rem=n; const parts=[];
+  if(rates.BX&&rem>=rates.BX){const bx=Math.floor(rem/rates.BX);rem=rem%rates.BX;if(bx>0)parts.push(bx+'BX');}
+  if(rates.PK&&rem>=rates.PK){const pk=Math.floor(rem/rates.PK);rem=rem%rates.PK;if(pk>0)parts.push(pk+'PK');}
+  if(rem>0||parts.length===0) parts.push(rem+'EA');
   return parts.join(' ');
 }
 
-function getAvailUnits(rates) {
-  const u = ['EA'];
-  if (rates.PK) u.push('PK');
-  if (rates.BX) u.push('BX');
-  return u;
-}
-
-// ── 인증 ─────────────────────────────────────────────
-function showLogin(){ s('regScreen','none'); s('loginScreen','block'); }
-function showReg()  { s('loginScreen','none'); s('regScreen','block'); }
-function s(id,v){ document.getElementById(id).style.display=v; }
-function loading(v){ document.getElementById('loading').classList.toggle('show',v); }
+// ── 인증 ─────────────────────────────────────────
+function showLogin(){g('regScreen').style.display='none';g('loginScreen').style.display='block';}
+function showReg(){g('loginScreen').style.display='none';g('regScreen').style.display='block';}
+function loading(v){g('loading').classList.toggle('show',v);}
+function g(id){return document.getElementById(id);}
+function val(id){return (g(id)?.value||'').trim();}
 
 async function doLogin(){
-  const empId=v('loginId'), pass=v('loginPw');
+  const empId=val('loginId'),pass=val('loginPw');
   if(!empId||!pass){alert('사번과 비밀번호를 입력하세요');return;}
   loading(true);
   try{
@@ -231,67 +241,70 @@ async function doLogin(){
       user=r.user; user.password=pass;
       localStorage.setItem('invUser',JSON.stringify(user));
       startApp();
-    } else { alert(r.error||'로그인 실패'); }
+    } else alert(r.error||'로그인 실패');
   }catch(e){alert('서버 오류: '+e.message);}
   finally{loading(false);}
 }
 
 async function doRegister(){
-  const name=v('regName'), empId=v('regId'), pass=v('regPw'), team=v('regTeam');
+  const name=val('regName'),empId=val('regId'),pass=val('regPw'),team=val('regTeam');
   if(!name||!empId||!pass||!team){alert('모든 항목을 입력하세요');return;}
   loading(true);
   try{
     const r=await post({action:'register',empId,name,pass,team});
     if(r.success){
       alert(r.message||'완료');
-      if(r.user){
-        // 관리자는 바로 로그인
-        user=r.user; user.password=pass;
-        localStorage.setItem('invUser',JSON.stringify(user));
-        startApp();
-      } else {
-        // 대기자는 로그인 화면으로
-        showLogin();
-      }
-    } else { alert(r.error||'가입 실패'); }
+      if(r.user){user=r.user;user.password=pass;localStorage.setItem('invUser',JSON.stringify(user));startApp();}
+      else showLogin();
+    } else alert(r.error||'가입 실패');
   }catch(e){alert('서버 오류: '+e.message);}
   finally{loading(false);}
 }
 
 function doLogout(){
   if(!confirm('로그아웃 하시겠습니까?'))return;
-  localStorage.removeItem('invUser');
-  user=null; sel.clear();
-  s('app','none'); s('loginScreen','block');
-  document.getElementById('loginId').value='';
-  document.getElementById('loginPw').value='';
+  localStorage.removeItem('invUser'); user=null; sel.clear();
+  g('app').style.display='none'; g('loginScreen').style.display='block';
+  g('loginId').value=''; g('loginPw').value='';
 }
 
-// ── 앱 시작 ───────────────────────────────────────────
+// ── 앱 시작 ──────────────────────────────────────
 function startApp(){
-  s('loginScreen','none'); s('regScreen','none'); s('app','block');
-  document.getElementById('headerSub').textContent=user.name+' · '+user.team;
-  if(String(user.empId)===ADMIN) document.getElementById('adminBtn').style.display='block';
-  buildTabs(); loadData(false);
+  g('loginScreen').style.display='none'; g('regScreen').style.display='none'; g('app').style.display='block';
+  g('headerSub').textContent=user.name+' · '+user.team;
+  if(String(user.empId)===ADMIN) g('adminBtn').style.display='block';
+  buildTabs(); buildCatBar(); loadData(false);
 }
 
 function buildTabs(){
   const all=[...TABS];
   if(String(user.empId)===ADMIN) all.push('관리자');
-  document.getElementById('tabs').innerHTML=all.map(t=>
+  g('tabs').innerHTML=all.map(t=>
     `<button class="tab${t===tab?' active':''}" onclick="switchTab('${t}')">${
       t==='창고'?'🏭 창고':t==='거래내역'?'📋 거래':t==='관리자'?'👥 관리자':t}</button>`
   ).join('');
 }
 
+function buildCatBar(){
+  const hide=tab==='거래내역'||tab==='관리자';
+  g('catBar').style.display=hide?'none':'flex';
+  g('catBar').innerHTML=CATS.map(c=>
+    `<button class="cat-btn${c===selCat?' active':''}" data-cat="${c}" onclick="switchCat('${c}')">${c}</button>`
+  ).join('');
+}
+
 function switchTab(t){
-  tab=t; sel.clear(); buildTabs();
+  tab=t; sel.clear(); selCat='전체'; buildTabs(); buildCatBar();
   const hide=t==='거래내역'||t==='관리자';
-  document.getElementById('searchWrap').style.display=hide?'none':'block';
+  g('searchWrap').style.display=hide?'none':'block';
   render(); updateBar();
 }
 
-// ── 데이터 ───────────────────────────────────────────
+function switchCat(c){
+  selCat=c; buildCatBar(); render();
+}
+
+// ── 데이터 ───────────────────────────────────────
 async function loadData(force){
   if(!force){
     const c=localStorage.getItem('invCache');
@@ -308,53 +321,61 @@ async function loadData(force){
   finally{loading(false);}
 }
 
-async function reload(){ localStorage.removeItem('invCache'); await loadData(true); }
+async function reload(){localStorage.removeItem('invCache');await loadData(true);}
 
-// ── 렌더링 ───────────────────────────────────────────
+// ── 렌더링 ───────────────────────────────────────
 function render(){
-  const el=document.getElementById('content');
-  if(tab==='거래내역'){ renderTx(el); return; }
-  if(tab==='관리자'){ renderAdmin(el); return; }
+  const el=g('content');
+  if(tab==='거래내역'){renderTx(el);return;}
+  if(tab==='관리자'){renderAdmin(el);return;}
 
-  const q=(v('searchInput')||'').toLowerCase();
-  const list=items.map(i=>{
+  const q=(val('searchInput')||'').toLowerCase();
+  let list=items.map(i=>{
     const rates=parseRates(i.memo);
-    let eaQty;
-    if(tab==='창고'){ eaQty=i.eaQty; }
-    else {
-      const ts=teamStocks[tab];
-      eaQty=ts&&ts[i.name]?ts[i.name].eaQty:0;
-    }
+    let eaQty=tab==='창고'?i.eaQty:((teamStocks[tab]||{})[i.name]?.eaQty||0);
     return{...i,eaQty,rates,display:eaToDisplay(eaQty,rates,i.unit)};
-  }).filter(i=>!q||i.name.toLowerCase().includes(q));
+  }).filter(i=>(!q||i.name.toLowerCase().includes(q))&&(selCat==='전체'||i.category===selCat));
 
-  if(!list.length){ el.innerHTML='<div class="empty">📭 물품이 없습니다</div>'; return; }
+  if(!list.length){el.innerHTML='<div class="empty">📭 물품이 없습니다</div>';return;}
 
-  el.innerHTML='<div class="item-list">'+list.map(i=>{
-    const pos=i.eaQty>0, neg=i.eaQty<0;
-    const qc=pos?'pos':neg?'neg':'zero';
-    const checked=sel.has(i.name)?'checked':'';
-    const nm=i.name.replace(/'/g,"\\'");
-    return `<div class="item-card"><div class="item-row">
-      <input type="checkbox" class="item-check" onchange="toggleSel(this,'${nm}','${i.unit}','${i.memo||''}')" ${checked}>
-      <div class="item-info">
-        <div class="item-name">${i.name}</div>
-        ${i.memo?`<div class="item-memo">📝 ${i.memo}</div>`:''}
-      </div>
-      <div class="item-qty-wrap">
-        <div class="item-qty ${qc}">${i.display}</div>
-      </div>
-    </div></div>`;
-  }).join('')+'</div>';
+  // 카테고리별 그룹핑
+  let html='<div class="item-list">';
+  if(selCat==='전체'){
+    const grouped={};
+    list.forEach(i=>{if(!grouped[i.category])grouped[i.category]=[];grouped[i.category].push(i);});
+    CATS.filter(c=>c!=='전체').forEach(cat=>{
+      if(!grouped[cat]||!grouped[cat].length) return;
+      const col=CAT_COLORS[cat]||'#636e72';
+      html+=`<div class="cat-group-header"><span class="cat-dot" style="background:${col}"></span>${cat} (${grouped[cat].length})</div>`;
+      html+=grouped[cat].map(i=>itemCard(i)).join('');
+    });
+  } else {
+    html+=list.map(i=>itemCard(i)).join('');
+  }
+  html+='</div>';
+  el.innerHTML=html;
   updateBar();
 }
 
+function itemCard(i){
+  const qc=i.eaQty>0?'pos':i.eaQty<0?'neg':'zero';
+  const nm=i.name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+  const memo=i.memo?`<div class="item-memo">📝 ${i.memo}</div>`:'';
+  const catCol=CAT_COLORS[i.category]||'#636e72';
+  return `<div class="item-card"><div class="item-row" style="border-left:3px solid ${catCol}">
+    <input type="checkbox" class="item-check" onchange="toggleSel(this,'${nm}','${i.unit}','${i.memo||''}','${i.category||''}')" ${sel.has(i.name)?'checked':''}>
+    <div class="item-info"><div class="item-name">${i.name}</div>${memo}</div>
+    <div class="item-qty-wrap"><div class="item-qty ${qc}">${i.display}</div></div>
+  </div></div>`;
+}
+
 function renderTx(el){
-  if(!txs.length){ el.innerHTML='<div class="empty">📋 거래내역 없음</div>'; return; }
+  if(!txs.length){el.innerHTML='<div class="empty">📋 거래내역 없음</div>';return;}
   el.innerHTML='<div class="item-list">'+txs.map(t=>`
     <div class="item-card"><div class="tx-item">
-      <div class="tx-head"><span class="tx-badge ${t.type}">${t.type}</span><span class="tx-name">${t.item}</span></div>
-      <div class="tx-info">${t.inputQty||t.qty}${t.unit||'EA'} · ${t.from||''} → ${t.to||''} · ${t.user||''}</div>
+      <div class="tx-head"><span class="tx-badge ${t.type}">${t.type}</span></div>
+      <div style="font-size:13px;font-weight:bold;margin-bottom:3px">${t.content||''}</div>
+      <div class="tx-info">${t.from||''} → ${t.to||''} · ${t.user||''}</div>
       <div class="tx-info">${t.date||''}</div>
     </div></div>`).join('')+'</div>';
 }
@@ -378,7 +399,7 @@ async function renderAdmin(el){
         </div></div>`).join('');
     }
     if(approved.length){
-      html+=`<div style="font-weight:bold;padding:8px 4px;color:#00b894;margin-top:12px">✅ 승인된 사용자 (${approved.length}명)</div>`;
+      html+=`<div style="font-weight:bold;padding:8px 4px;color:#00b894;margin-top:12px">✅ 승인된 (${approved.length}명)</div>`;
       html+=approved.map(u=>`<div class="user-card approved">
         <div class="user-name">${u.name} <span style="font-size:12px;color:#b2bec3">(${u.empId})</span></div>
         <div class="user-info">${u.team}</div>
@@ -397,65 +418,72 @@ async function approveUser(empId){
   if(r.success){alert('승인 완료');switchTab('관리자');}else alert(r.error);
 }
 async function delUser(empId,name){
-  if(!confirm(name+' 삭제하시겠습니까?'))return;
+  if(!confirm(name+' 삭제?'))return;
   loading(true);
   const r=await post({action:'deleteUser',empId});
   loading(false);
-  if(r.success){alert('삭제 완료');switchTab('관리자');}else alert(r.error);
+  if(r.success){alert('완료');switchTab('관리자');}else alert(r.error);
 }
 
-// ── 선택 ─────────────────────────────────────────────
-function toggleSel(cb,name,unit,memo){
-  if(cb.checked) sel.set(name,{name,unit,memo});
+// ── 선택 ─────────────────────────────────────────
+function toggleSel(cb,name,unit,memo,category){
+  if(cb.checked) sel.set(name,{name,unit,memo,category});
   else sel.delete(name);
   updateBar();
 }
 
 function updateBar(){
-  const bar=document.getElementById('actionBar');
+  const bar=g('actionBar');
   if(sel.size===0||tab==='거래내역'||tab==='관리자'){bar.classList.add('hidden');return;}
   bar.classList.remove('hidden');
-  document.getElementById('btnIn').style.display=tab==='창고'?'block':'none';
-  document.getElementById('btnOut').style.display=tab==='창고'?'block':'none';
-  document.getElementById('btnRet').style.display=tab!=='창고'?'block':'none';
+  g('btnIn').style.display=tab==='창고'?'block':'none';
+  g('btnOut').style.display=tab==='창고'?'block':'none';
+  g('btnRet').style.display=tab!=='창고'?'block':'none';
 }
 
-// ── 입고 모달 ────────────────────────────────────────
+// ── 모달 공통 아이템 행 ───────────────────────────
+function selItemRow(i, stockDisplay) {
+  const rates=parseRates(i.memo);
+  // 항상 EA, PK, BX 모두 표시 (변환비 있으면 BX/PK 도움말 추가)
+  const bxLabel = rates.BX ? `BX (1BX=${rates.BX}EA)` : 'BX';
+  const pkLabel = rates.PK ? `PK (1PK=${rates.PK}EA)` : 'PK';
+  return `<div class="sel-item">
+    <div class="sel-item-name">${i.name}</div>
+    <div class="sel-item-stock">${stockDisplay}</div>
+    <div class="sel-row">
+      <label>수량</label>
+      <input type="number" class="sel-qty" id="q_${eid(i.name)}" value="1" min="1">
+      <select class="sel-unit" id="u_${eid(i.name)}">
+        <option value="EA">EA</option>
+        <option value="PK">${pkLabel}</option>
+        <option value="BX">${bxLabel}</option>
+      </select>
+    </div></div>`;
+}
+
+// ── 입고 ─────────────────────────────────────────
 function openIn(){
   const rows=Array.from(sel.values());
   let html=`<span class="modal-close" onclick="closeModal()">×</span>
     <div class="modal-title">📥 창고 입고</div>
-    <div class="modal-sub">수량과 단위를 입력하세요</div>
+    <div class="modal-sub">수량과 단위를 선택하세요</div>
     <div class="sel-list">`;
   rows.forEach(i=>{
     const item=items.find(x=>x.name===i.name)||{};
     const rates=parseRates(i.memo);
-    const units=getAvailUnits(rates);
-    const cur=eaToDisplay(item.eaQty||0,rates,i.unit);
-    html+=`<div class="sel-item">
-      <div class="sel-item-name">${i.name}</div>
-      <div class="sel-item-stock">현재 창고: ${cur}</div>
-      <div class="sel-row">
-        <label>수량</label>
-        <input type="number" class="sel-qty" id="q_${eid(i.name)}" value="1" min="1">
-        <select class="sel-unit" id="u_${eid(i.name)}">
-          ${units.map(u=>`<option value="${u}" ${u===i.unit?'selected':''}>${u}</option>`).join('')}
-        </select>
-      </div></div>`;
+    html+=selItemRow(i,`현재 창고: ${eaToDisplay(item.eaQty||0,rates,i.unit)}`);
   });
   html+=`</div><button class="confirm-btn" onclick="doIn()">입고 확인</button>`;
-  document.getElementById('modal').innerHTML=html;
-  showModal();
+  g('modal').innerHTML=html; showModal();
 }
 
 async function doIn(){
   const rows=Array.from(sel.values());
   const itms=rows.map(i=>{
     const rates=parseRates(i.memo);
-    const qty=Number(document.getElementById('q_'+eid(i.name)).value)||1;
-    const unit=document.getElementById('u_'+eid(i.name)).value;
-    const eaQty=toEA(qty,unit,rates);
-    return{name:i.name,unit:i.unit,memo:i.memo,inputQty:qty,inputUnit:unit,eaQty};
+    const qty=Number(g('q_'+eid(i.name))?.value)||1;
+    const unit=g('u_'+eid(i.name))?.value||'EA';
+    return{name:i.name,unit:i.unit,memo:i.memo,category:i.category,inputQty:qty,inputUnit:unit,eaQty:toEA(qty,unit,rates)};
   });
   closeModal(); loading(true);
   try{
@@ -465,7 +493,7 @@ async function doIn(){
   }finally{loading(false);}
 }
 
-// ── 출고 모달 ────────────────────────────────────────
+// ── 출고 ─────────────────────────────────────────
 function openOut(){
   const rows=Array.from(sel.values());
   let html=`<span class="modal-close" onclick="closeModal()">×</span>
@@ -475,33 +503,18 @@ function openOut(){
   rows.forEach(i=>{
     const item=items.find(x=>x.name===i.name)||{};
     const rates=parseRates(i.memo);
-    const units=getAvailUnits(rates);
-    const cur=eaToDisplay(item.eaQty||0,rates,i.unit);
-    html+=`<div class="sel-item">
-      <div class="sel-item-name">${i.name}</div>
-      <div class="sel-item-stock">현재 창고: ${cur}</div>
-      <div class="sel-row">
-        <label>수량</label>
-        <input type="number" class="sel-qty" id="q_${eid(i.name)}" value="1" min="1">
-        <select class="sel-unit" id="u_${eid(i.name)}">
-          ${units.map(u=>`<option value="${u}" ${u===i.unit?'selected':''}>${u}</option>`).join('')}
-        </select>
-      </div></div>`;
+    html+=selItemRow(i,`현재 창고: ${eaToDisplay(item.eaQty||0,rates,i.unit)}`);
   });
   html+=`</div>
     <div style="font-weight:bold;margin-bottom:8px;font-size:14px">목적지 팀</div>
     <div class="team-grid">
-      ${['화성','수원','평택','2팀','3팀','4팀','5팀','6팀'].map(t=>`<button class="team-btn" onclick="selTeam(this,'${t}')">${t}</button>`).join('')}
+      ${['화성','수원','평택','2팀','3팀','4팀','5팀','6팀'].map(t=>`<button class="team-btn" onclick="selTeam(this)">${t}</button>`).join('')}
     </div>
     <button class="confirm-btn danger" onclick="doOut()">출고 확인</button>`;
-  document.getElementById('modal').innerHTML=html;
-  showModal();
+  g('modal').innerHTML=html; showModal();
 }
 
-function selTeam(el){
-  document.querySelectorAll('.team-btn').forEach(b=>b.classList.remove('on'));
-  el.classList.add('on');
-}
+function selTeam(el){document.querySelectorAll('.team-btn').forEach(b=>b.classList.remove('on'));el.classList.add('on');}
 
 async function doOut(){
   const teamEl=document.querySelector('.team-btn.on');
@@ -510,9 +523,9 @@ async function doOut(){
   const rows=Array.from(sel.values());
   const itms=rows.map(i=>{
     const rates=parseRates(i.memo);
-    const qty=Number(document.getElementById('q_'+eid(i.name)).value)||1;
-    const unit=document.getElementById('u_'+eid(i.name)).value;
-    return{name:i.name,unit:i.unit,memo:i.memo,inputQty:qty,inputUnit:unit,eaQty:toEA(qty,unit,rates)};
+    const qty=Number(g('q_'+eid(i.name))?.value)||1;
+    const unit=g('u_'+eid(i.name))?.value||'EA';
+    return{name:i.name,unit:i.unit,memo:i.memo,category:i.category,inputQty:qty,inputUnit:unit,eaQty:toEA(qty,unit,rates)};
   });
   closeModal(); loading(true);
   try{
@@ -522,42 +535,30 @@ async function doOut(){
   }finally{loading(false);}
 }
 
-// ── 반납 모달 ────────────────────────────────────────
+// ── 반납 ─────────────────────────────────────────
 function openRet(){
   const rows=Array.from(sel.values());
   let html=`<span class="modal-close" onclick="closeModal()">×</span>
     <div class="modal-title">↩️ 창고 반납</div>
-    <div class="modal-sub">${tab} → 창고로 반납</div>
+    <div class="modal-sub">${tab} → 창고</div>
     <div class="sel-list">`;
   rows.forEach(i=>{
     const rates=parseRates(i.memo);
-    const units=getAvailUnits(rates);
     const ts=teamStocks[tab];
     const eaQty=ts&&ts[i.name]?ts[i.name].eaQty:0;
-    const cur=eaToDisplay(eaQty,rates,i.unit);
-    html+=`<div class="sel-item">
-      <div class="sel-item-name">${i.name}</div>
-      <div class="sel-item-stock">보유: ${cur}</div>
-      <div class="sel-row">
-        <label>수량</label>
-        <input type="number" class="sel-qty" id="q_${eid(i.name)}" value="1" min="1">
-        <select class="sel-unit" id="u_${eid(i.name)}">
-          ${units.map(u=>`<option value="${u}" ${u===i.unit?'selected':''}>${u}</option>`).join('')}
-        </select>
-      </div></div>`;
+    html+=selItemRow(i,`보유: ${eaToDisplay(eaQty,rates,i.unit)}`);
   });
   html+=`</div><button class="confirm-btn purple" onclick="doRet()">반납 확인</button>`;
-  document.getElementById('modal').innerHTML=html;
-  showModal();
+  g('modal').innerHTML=html; showModal();
 }
 
 async function doRet(){
   const rows=Array.from(sel.values());
   const itms=rows.map(i=>{
     const rates=parseRates(i.memo);
-    const qty=Number(document.getElementById('q_'+eid(i.name)).value)||1;
-    const unit=document.getElementById('u_'+eid(i.name)).value;
-    return{name:i.name,unit:i.unit,memo:i.memo,inputQty:qty,inputUnit:unit,eaQty:toEA(qty,unit,rates)};
+    const qty=Number(g('q_'+eid(i.name))?.value)||1;
+    const unit=g('u_'+eid(i.name))?.value||'EA';
+    return{name:i.name,unit:i.unit,memo:i.memo,category:i.category,inputQty:qty,inputUnit:unit,eaQty:toEA(qty,unit,rates)};
   });
   closeModal(); loading(true);
   try{
@@ -567,17 +568,15 @@ async function doRet(){
   }finally{loading(false);}
 }
 
-// ── 유틸 ─────────────────────────────────────────────
-function v(id){ return document.getElementById(id)?.value?.trim()||''; }
-function eid(s){ return s.replace(/[^a-zA-Z0-9가-힣]/g,'_'); }
-function showModal(){ document.getElementById('modalBg').classList.add('show'); }
-function closeModal(){ document.getElementById('modalBg').classList.remove('show'); }
-async function post(body){ const r=await fetch(API,{method:'POST',body:JSON.stringify(body)}); return r.json(); }
+// ── 유틸 ─────────────────────────────────────────
+function eid(s){return s.replace(/[^a-zA-Z0-9가-힣]/g,'_');}
+function showModal(){g('modalBg').classList.add('show');}
+function closeModal(){g('modalBg').classList.remove('show');}
+async function post(body){const r=await fetch(API,{method:'POST',body:JSON.stringify(body)});return r.json();}
 
-// ── 초기화 ───────────────────────────────────────────
 window.onload=function(){
   const saved=localStorage.getItem('invUser');
-  if(saved){ user=JSON.parse(saved); startApp(); }
+  if(saved){user=JSON.parse(saved);startApp();}
 };
 </script>
 </body>
