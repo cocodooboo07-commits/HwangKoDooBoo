@@ -174,7 +174,7 @@ body{font-family:-apple-system,sans-serif;background:var(--bg);color:var(--text)
 </div>
 
 <script>
-const API='https://script.google.com/macros/s/AKfycbyvR0ca8wLqihHRh8l1xDpapYbRiaipmIhmZOb_CkQb0AoTmHvVjolChAadQvR8Oata/exec';
+const API='https://script.google.com/macros/s/AKfycbzAftkl4CfnfG6hsSSQlpnJvYl7Qu-vE1TJ0IONM7yAfZXjaH65jKFbSCgJY3PoyEQZ/exec';
 const ADMIN='218062';
 const TABS=['창고','화성','수원','평택','2팀','3팀','4팀','5팀','6팀','거래내역'];
 const CATS=['채혈채뇨','공용물품','청력','HRV','EKG','폐활량','전체'];
@@ -305,31 +305,36 @@ function render(){
 function itemCard(i,isWH){
   const col=CCOLORS[i.category]||'#94A3B8';
   const qc=i.eaQty>0?'pos':i.eaQty<0?'neg':'zero';
+  const isLow=i.eaQty>0&&i.eaQty<5;
   const r=i.r;
-  const bxL=r.BX?`BX(1=${r.BX}EA)`:'BX';
-  const pkL=r.PK?`PK(1=${r.PK}EA)`:'PK';
+  const bxL=r.BX?`BX (1=${r.BX}EA)`:'BX';
+  const pkL=r.PK?`PK (1=${r.PK}EA)`:'PK';
   const nm=i.name.replace(/'/g,"\\'");
   const btnHtml=isWH
     ?`<button class="ia in"  onclick="doIn1('${nm}')">📥입고</button><button class="ia out" onclick="doOut1('${nm}')">📤출고</button>`
     :`<button class="ia ret" onclick="doRet1('${nm}')">↩반납</button>`;
+  // 단위 기본값을 스프레드시트 단위로 설정
+  const defUnit=i.unit||'EA';
   return `<div class="icard" id="ic_${eid(i.name)}">
     <div class="icard-top">
       <span class="ibar" style="background:${col}"></span>
-      <span class="iname">${i.name}${i.memo?`<br><span class="imemo">${i.memo}</span>`:''}</span>
+      <span class="iname" style="${isLow?'color:#DC2626':''}">${i.name}${isLow?' ⚠️':''}${i.memo?`<br><span class="imemo">${i.memo}</span>`:''}</span>
       <div style="text-align:right;flex-shrink:0">
-        <div class="iqty ${qc}">${i.dsp}</div>
+        <div class="iqty ${qc}" style="${isLow?'color:#DC2626':''}">${i.dsp}</div>
       </div>
     </div>
     <div class="icard-bot">
       <input type="number" class="inum" id="qn_${eid(i.name)}" value="1" min="1">
       <select class="isel" id="un_${eid(i.name)}">
-        <option value="EA">EA</option>
-        <option value="PK">${pkL}</option>
-        <option value="BX">${bxL}</option>
+        <option value="EA" ${defUnit==='EA'?'selected':''}>EA</option>
+        <option value="PK" ${defUnit==='PK'?'selected':''}>${pkL}</option>
+        <option value="BX" ${defUnit==='BX'?'selected':''}>${bxL}</option>
       </select>
       ${btnHtml}
     </div>
-  </div>`;
+  </div>`;}
+
+
 }
 
 // 단건 입고
