@@ -230,7 +230,7 @@ function switchApp(name){
 /* ================================================================
    장비관리
    ================================================================ */
-const EQUIP_API='https://script.google.com/macros/s/AKfycbzPy-A4iX7Lyk5RO8Avr2fQeWpMAQWsIFsjrTb9WtBfgTqp21-YnnwTZpVrb4LYD_wV/exec';
+const EQUIP_API='https://script.google.com/macros/s/AKfycbwkdUB52ena4RyLE3BXlEfFIhYy-Ja0NPMzJ_YVWqKSXlso7VMOJNvp2eNsgdwjMzCH/exec';
 const MAIL_API='https://script.google.com/macros/s/AKfycbzNrE3s08iOZndyR7estzZOMw_vd5BHz6zqwd0ogki5m00C6dOxRiySD4VgIy2Io3AQ/exec';
 const LOCS=['화성','2','3','4','5','6','평택','수원','아산1','사무실','의공실','센터','미선택'];
 const EMAILS={'조해영':'hy0617.jo@samsung.com','백수빈':'subeen2319.baek@samsung.com','김보현':'bohyeon6601.kim@samsung.com','이지연':'joanna0812.lee@samsung.com','안성진':'sj0206.ahn@samsung.com','안성진2':'heroboy07@hanmail.net'};
@@ -290,31 +290,63 @@ const CCOLORS={'채혈채뇨':'#2563EB','공용물품':'#6B7280','청력':'#D977
 
 let invUser=null,curTab='창고',curCat='채혈채뇨',items=[],teamStocks={},txs=[],pendingOut=null,pendingAction=null;
 
-/* ── 단위변환 ── */
-function parseR(memo,baseUnit){
-  var r={BX:null,PK:null};
-  if(!memo)return r;
-  baseUnit=baseUnit||'EA';
-  var bxEa=memo.match(/1\s*BX\s*[=x×→]\s*(\d+)\s*EA/i);
-  if(bxEa)r.BX=parseInt(bxEa[1]);
-  var pkEa=memo.match(/1\s*PK\s*[=x×→]\s*(\d+)\s*EA/i);
-  if(pkEa)r.PK=parseInt(pkEa[1]);
-  var bxPk=memo.match(/1\s*BX\s*[=x×→]\s*(\d+)\s*PK/i);
-  if(bxPk){
-    if(r.PK){r.BX=parseInt(bxPk[1])*r.PK;}
-    else if(baseUnit==='PK'||!r.BX){r.BX=parseInt(bxPk[1]);}
+/* ── 단위변환 (BX > PK > EA, item.unit = 실제 저장 기준 단위) ── */
+function parseR(memo, baseUnit){
+  // 반환값: 각 단위 1개 = base 단위 몇 개인지. base 자신은 1. 정의 안 된 단위는 null.
+  var r = {BX:null, PK:null, EA:null};
+  baseUnit = baseUnit || 'EA';
+  r[baseUnit] = 1;
+  if(!memo) return r;
+
+  var mBxEa = memo.match(/1\s*BX\s*[=x×→]\s*(\d+)\s*EA/i);
+  var mPkEa = memo.match(/1\s*PK\s*[=x×→]\s*(\d+)\s*EA/i);
+  var mBxPk = memo.match(/1\s*BX\s*[=x×→]\s*(\d+)\s*PK/i);
+
+  var bxEa = mBxEa ? parseInt(mBxEa[1]) : null;
+  var pkEa = mPkEa ? parseInt(mPkEa[1]) : null;
+  var bxPk = mBxPk ? parseInt(mBxPk[1]) : null;
+
+  if(bxEa==null && bxPk!=null && pkEa!=null) bxEa = bxPk*pkEa;
+  if(pkEa==null && bxEa!=null && bxPk!=null) pkEa = bxEa/bxPk;
+
+  if(baseUnit==='EA'){
+    r.PK = pkEa;
+    r.BX = bxEa;
+  } else if(baseUnit==='PK'){
+    r.BX = bxPk!=null ? bxPk : (bxEa!=null && pkEa!=null ? bxEa/pkEa : null);
+  } else if(baseUnit==='BX'){
+    r.PK = bxPk!=null ? 1/bxPk : null;
+    r.EA = bxEa!=null ? 1/bxEa : null;
   }
+  r[baseUnit] = 1;
   return r;
 }
-function toBase(q,u,r){if(u==='BX'&&r.BX)return q*r.BX;if(u==='PK'&&r.PK)return q*r.PK;return q;}
-function dispQty(n,r,unit){
-  n=Math.max(0,parseInt(n)||0);
-  if(!r.BX&&!r.PK)return n+(unit?' '+unit:'EA');
-  var rem=n,p=[];
-  if(r.BX&&rem>=r.BX){var v=Math.floor(rem/r.BX);rem=rem%r.BX;if(v)p.push(v+'BX');}
-  if(r.PK&&rem>=r.PK){var v=Math.floor(rem/r.PK);rem=rem%r.PK;if(v)p.push(v+'PK');}
-  if(rem||!p.length)p.push(rem+(unit||'EA'));
-  return p.join(' ');
+
+// 입력 단위(u)의 수량(q) → base 단위 수량. 환산 정보가 없으면 null 반환(호출부에서 막아야 함)
+function toBase(q, u, r, baseUnit){
+  if(u === baseUnit) return q;
+  var mult = r[u];
+  if(mult == null) return null;
+  return q * mult;
+}
+
+// base 단위 총량(n) → BX > PK > EA 순서로 사람이 읽는 형태로 변환 (base보다 작은 단위는 표시 안 함)
+function dispQty(n, r, baseUnit){
+  baseUnit = baseUnit || 'EA';
+  n = Math.max(0, Number(n) || 0);
+  var order = ['BX','PK','EA'];
+  var biggerUnits = order.slice(0, order.indexOf(baseUnit));
+  var rem = n, parts = [];
+  biggerUnits.forEach(function(u){
+    var mult = r[u];
+    if(mult && rem >= mult){
+      var v = Math.floor(rem / mult);
+      rem = rem % mult;
+      if(v) parts.push(v+u);
+    }
+  });
+  if(rem || !parts.length) parts.push(rem + baseUnit);
+  return parts.join(' ');
 }
 
 /* ── 유틸 ── */
@@ -394,9 +426,10 @@ function render(){
   var q=ig('srchIn')?ig('srchIn').value.toLowerCase():'';
   var isWH=curTab==='창고';
   var list=items.map(function(i){
-    var r=parseR(i.memo,i.unit);
+    var baseUnit=i.unit||'EA';
+    var r=parseR(i.memo,baseUnit);
     var eaQty=isWH?i.eaQty:((teamStocks[curTab]||{})[i.name]?teamStocks[curTab][i.name].eaQty:0);
-    return{name:i.name,unit:i.unit,memo:i.memo,category:i.category,eaQty:eaQty,r:r,dsp:dispQty(eaQty,r,i.unit)};
+    return{name:i.name,unit:baseUnit,memo:i.memo,category:i.category,eaQty:eaQty,r:r,dsp:dispQty(eaQty,r,baseUnit)};
   }).filter(function(i){
     if(q&&i.name.toLowerCase().indexOf(q)<0)return false;
     if(curCat!=='전체'&&i.category!==curCat)return false;
@@ -423,11 +456,19 @@ function invCard(i,isWH){
   var col=CCOLORS[i.category]||'#94A3B8';
   var low=i.eaQty>0&&i.eaQty<5;
   var qc=i.eaQty>0?(low?'low':'pos'):i.eaQty<0?'neg':'zero';
+  var baseUnit=i.unit||'EA';
   var r=i.r;
-  var bxL=r.BX?'BX(1='+r.BX+(i.unit||'EA')+')':'BX';
-  var pkL=r.PK?'PK(1='+r.PK+(i.unit||'EA')+')':'PK';
   var nm=i.name.replace(/'/g,"\\'");
-  var defUnit=i.unit||'EA';
+
+  // base 단위 + 메모에 환산이 정의된 단위만 선택지로 노출 (정의 안 된 단위는 숨김 → 오환산 방지)
+  var order=['BX','PK','EA'];
+  var opts=order.filter(function(u){return u===baseUnit||r[u]!=null;});
+  var optHtml=opts.map(function(u){
+    var label=u;
+    if(u!==baseUnit&&r[u]!=null) label+='(1='+r[u]+baseUnit+')';
+    return '<option value="'+u+'"'+(u===baseUnit?' selected':'')+'>'+label+'</option>';
+  }).join('');
+
   var btns=isWH
     ?'<button class="ia in" onclick="doIn1(\''+nm+'\')">📥입고</button><button class="ia out" onclick="doOut1(\''+nm+'\')">📤출고</button>'
     :'<button class="ia ret" onclick="doRet1(\''+nm+'\')">↩반납</button><button class="ia con" onclick="doCon1(\''+nm+'\')">🔥소비</button>';
@@ -439,11 +480,7 @@ function invCard(i,isWH){
     +'</div>'
     +'<div class="icard-bot">'
     +'<input type="number" class="inum" id="qn_'+ieid(i.name)+'" value="1" min="1">'
-    +'<select class="isel" id="un_'+ieid(i.name)+'">'
-    +'<option value="EA"'+(defUnit==='EA'?' selected':'')+'>EA</option>'
-    +'<option value="PK"'+(defUnit==='PK'?' selected':'')+'>'+pkL+'</option>'
-    +'<option value="BX"'+(defUnit==='BX'?' selected':'')+'>'+bxL+'</option>'
-    +'</select>'
+    +'<select class="isel" id="un_'+ieid(i.name)+'">'+optHtml+'</select>'
     +btns
     +'</div></div>';
 }
@@ -452,11 +489,13 @@ function invCard(i,isWH){
 function doIn1(name){
   var i=null;for(var k=0;k<items.length;k++){if(items[k].name===name){i=items[k];break;}}
   if(!i)return;
-  var r=parseR(i.memo,i.unit);
+  var baseUnit=i.unit||'EA';
+  var r=parseR(i.memo,baseUnit);
   var qty=parseInt(ig('qn_'+ieid(name)).value)||1;
-  var unit=ig('un_'+ieid(name)).value||'EA';
-  var eaQty=toBase(qty,unit,r);
-  invPost({action:'warehouseIn',items:[{name:name,unit:i.unit,memo:i.memo,category:i.category,inputQty:qty,inputUnit:unit,eaQty:eaQty}],user:invUser.name},function(err,res){
+  var unit=ig('un_'+ieid(name)).value||baseUnit;
+  var eaQty=toBase(qty,unit,r,baseUnit);
+  if(eaQty==null){alert('이 물품은 '+unit+' 단위 환산 정보가 메모에 없습니다.');return;}
+  invPost({action:'warehouseIn',items:[{name:name,unit:baseUnit,memo:i.memo,category:i.category,inputQty:qty,inputUnit:unit,eaQty:eaQty}],user:invUser.name},function(err,res){
     if(err){alert('오류');return;}
     if(res.success){invReload();alert('입고 완료!');}else alert('오류: '+res.error);
   });
@@ -466,10 +505,13 @@ function doIn1(name){
 function doOut1(name){
   var i=null;for(var k=0;k<items.length;k++){if(items[k].name===name){i=items[k];break;}}
   if(!i)return;
-  var r=parseR(i.memo,i.unit);
+  var baseUnit=i.unit||'EA';
+  var r=parseR(i.memo,baseUnit);
   var qty=parseInt(ig('qn_'+ieid(name)).value)||1;
-  var unit=ig('un_'+ieid(name)).value||'EA';
-  pendingOut={name:name,item:i,qty:qty,unit:unit,eaQty:toBase(qty,unit,r)};
+  var unit=ig('un_'+ieid(name)).value||baseUnit;
+  var eaQty=toBase(qty,unit,r,baseUnit);
+  if(eaQty==null){alert('이 물품은 '+unit+' 단위 환산 정보가 메모에 없습니다.');return;}
+  pendingOut={name:name,item:i,qty:qty,unit:unit,eaQty:eaQty};
   ig('mSheet').innerHTML='<div class="modal-handle"></div>'
     +'<div class="modal-title">📤 출고 - '+name+' '+qty+unit+'</div>'
     +'<div style="font-size:13px;color:var(--sub);margin-bottom:12px">어느 팀으로 출고할까요?</div>'
@@ -481,8 +523,9 @@ function doOut1(name){
 function confirmOut(){
   if(!pendingOut||!pendingOut.team){alert('팀을 선택하세요');return;}
   var po=pendingOut,i=po.item;
+  var baseUnit=i.unit||'EA';
   invCloseModal();
-  invPost({action:'warehouseOut',items:[{name:po.name,unit:i.unit,memo:i.memo,category:i.category,inputQty:po.qty,inputUnit:po.unit,eaQty:po.eaQty}],team:po.team,user:invUser.name},function(err,res){
+  invPost({action:'warehouseOut',items:[{name:po.name,unit:baseUnit,memo:i.memo,category:i.category,inputQty:po.qty,inputUnit:po.unit,eaQty:po.eaQty}],team:po.team,user:invUser.name},function(err,res){
     if(err){alert('오류');return;}
     if(res.success){pendingOut=null;invReload();alert(po.team+'으로 출고 완료!');}else alert('오류: '+res.error);
   });
@@ -491,11 +534,14 @@ function confirmOut(){
 /* ── 반납 (팀→창고) ── */
 function doRet1(name){
   var i=null;for(var k=0;k<items.length;k++){if(items[k].name===name){i=items[k];break;}}
-  var r=i?parseR(i.memo,i.unit):{BX:null,PK:null};
+  var baseUnit=i?(i.unit||'EA'):'EA';
+  var r=i?parseR(i.memo,baseUnit):{BX:null,PK:null,EA:null};
   var qty=parseInt(ig('qn_'+ieid(name)).value)||1;
-  var unit=ig('un_'+ieid(name)).value||'EA';
+  var unit=ig('un_'+ieid(name)).value||baseUnit;
+  var eaQty=toBase(qty,unit,r,baseUnit);
+  if(eaQty==null){alert('이 물품은 '+unit+' 단위 환산 정보가 메모에 없습니다.');return;}
   if(!confirm(name+' '+qty+unit+' 창고로 반납?'))return;
-  invPost({action:'teamReturn',items:[{name:name,unit:i?i.unit:unit,memo:i?i.memo:'',category:i?i.category:'',inputQty:qty,inputUnit:unit,eaQty:toBase(qty,unit,r)}],team:curTab,user:invUser.name},function(err,res){
+  invPost({action:'teamReturn',items:[{name:name,unit:baseUnit,memo:i?i.memo:'',category:i?i.category:'',inputQty:qty,inputUnit:unit,eaQty:eaQty}],team:curTab,user:invUser.name},function(err,res){
     if(err){alert('오류');return;}
     if(res.success){invReload();alert('반납 완료!');}else alert('오류: '+res.error);
   });
@@ -504,11 +550,14 @@ function doRet1(name){
 /* ── 소비 (팀에서 사용, 창고 영향 없음) ── */
 function doCon1(name){
   var i=null;for(var k=0;k<items.length;k++){if(items[k].name===name){i=items[k];break;}}
-  var r=i?parseR(i.memo,i.unit):{BX:null,PK:null};
+  var baseUnit=i?(i.unit||'EA'):'EA';
+  var r=i?parseR(i.memo,baseUnit):{BX:null,PK:null,EA:null};
   var qty=parseInt(ig('qn_'+ieid(name)).value)||1;
-  var unit=ig('un_'+ieid(name)).value||'EA';
+  var unit=ig('un_'+ieid(name)).value||baseUnit;
+  var eaQty=toBase(qty,unit,r,baseUnit);
+  if(eaQty==null){alert('이 물품은 '+unit+' 단위 환산 정보가 메모에 없습니다.');return;}
   if(!confirm(name+' '+qty+unit+' 소비(사용)처리?'))return;
-  invPost({action:'teamConsume',items:[{name:name,unit:i?i.unit:unit,memo:i?i.memo:'',category:i?i.category:'',inputQty:qty,inputUnit:unit,eaQty:toBase(qty,unit,r)}],team:curTab,user:invUser.name},function(err,res){
+  invPost({action:'teamConsume',items:[{name:name,unit:baseUnit,memo:i?i.memo:'',category:i?i.category:'',inputQty:qty,inputUnit:unit,eaQty:eaQty}],team:curTab,user:invUser.name},function(err,res){
     if(err){alert('오류');return;}
     if(res.success){invReload();alert('소비 처리 완료!');}else alert('오류: '+res.error);
   });
