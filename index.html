@@ -286,7 +286,45 @@ const INV_API='https://script.google.com/macros/s/AKfycbyw8sVrUQ0iDFo_emFnPgV8p-
 const INV_ADMIN='218062';
 const TABS=['창고','화성','수원','평택','2팀','3팀','4팀','5팀','6팀','거래내역'];
 const CATS=['채혈채뇨','공용물품','청력','HRV','EKG','폐활량','전체'];
-const CCOLORS={'채혈채뇨':'#2563EB','공용물품':'#6B7280','청력':'#D97706','HRV':'#0891B2','EKG':'#7C3AED','폐활량':'#475569','전체':'#059669'};
+const CCOLORS={'채혈채뇨':'#2563EB','공용물품':'#6B7280','청력':'#D97706','HRV':'#16A34A','EKG':'#7C3AED','폐활량':'#475569','전체':'#059669'};
+
+/* ── 단위 환산 수동 보정표 (구글시트 메모에 환산식이 없는 경우를 위한 폴백) ── */
+const UNIT_CONV_MAP={
+  '손소독제':'1BX=12EA',
+  '알콜솜 (200매)':'1BX=48EA',
+  '알콜솜 (100매)':'1BX=12EA',
+  'PLAIN':'1BX=12PK',
+  'SST':'1BX=12PK',
+  'EDTA':'1BX=12PK',
+  'Heparin':'1BX=12PK',
+  'Sod.citrate':'1PK=100EA',
+  'Pronto Holder':'1PK=20EA',
+  '니들폐기물통':'1PK=5EA',
+  '니들 21G':'1BX=10EA',
+  '니들 22G':'1BX=10EA',
+  'Luer adapter':'1PK=100EA',
+  '원형밴드':'1BX=20EA',
+  '면반창고 (트랜스포어)':'1PK=12EA',
+  '10종 소변스틱':'1PK=10EA',
+  '4종 소변스틱':'1PK=10EA',
+  'Cotinine':'1BX=25EA',
+  '메디젝 튜브':'1BX=10PK',
+  '종이컵':'1BX=20EA'
+};
+function hasConv(memo){
+  if(!memo) return false;
+  return /1\s*BX\s*[=x×→]\s*\d+\s*EA/i.test(memo) || /1\s*PK\s*[=x×→]\s*\d+\s*EA/i.test(memo) || /1\s*BX\s*[=x×→]\s*\d+\s*PK/i.test(memo);
+}
+function applyUnitOverrides(list){
+  return (list||[]).map(function(it){
+    var nm=(it.name||'').trim();
+    var ov=UNIT_CONV_MAP[nm];
+    if(ov && !hasConv(it.memo)){
+      it.memo = it.memo ? (it.memo+' '+ov) : ov;
+    }
+    return it;
+  });
+}
 
 let invUser=null,curTab='창고',curCat='채혈채뇨',items=[],teamStocks={},txs=[],pendingOut=null,pendingAction=null;
 
@@ -314,6 +352,7 @@ function parseR(memo, baseUnit){
     r.BX = bxEa;
   } else if(baseUnit==='PK'){
     r.BX = bxPk!=null ? bxPk : (bxEa!=null && pkEa!=null ? bxEa/pkEa : null);
+    r.EA = pkEa;
   } else if(baseUnit==='BX'){
     r.PK = bxPk!=null ? 1/bxPk : null;
     r.EA = bxEa!=null ? 1/bxEa : null;
@@ -408,10 +447,10 @@ function buildCats(){
 function goTab(t){curTab=t;buildTabs();buildCats();render();}
 function goCat(c){curCat=c;buildCats();render();}
 function loadData(force){
-  if(!force){var c=localStorage.getItem('invCache');if(c){try{var p=JSON.parse(c);if(Date.now()-p.t<180000){items=p.items;teamStocks=p.ts;txs=p.txs;render();return;}}catch(e){}}}
+  if(!force){var c=localStorage.getItem('invCache');if(c){try{var p=JSON.parse(c);if(Date.now()-p.t<180000){items=applyUnitOverrides(p.items);teamStocks=p.ts;txs=p.txs;render();return;}}catch(e){}}}
   invGet('getAll',function(err,d){
     if(err){alert('로딩 실패');return;}
-    items=d.items||[];teamStocks=d.teamStocks||{};txs=d.transactions||[];
+    items=applyUnitOverrides(d.items||[]);teamStocks=d.teamStocks||{};txs=d.transactions||[];
     localStorage.setItem('invCache',JSON.stringify({items:items,ts:teamStocks,txs:txs,t:Date.now()}));
     render();
   });
