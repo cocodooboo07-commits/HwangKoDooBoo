@@ -286,7 +286,14 @@ const INV_API='https://script.google.com/macros/s/AKfycbyw8sVrUQ0iDFo_emFnPgV8p-
 const INV_ADMIN='218062';
 const TABS=['창고','화성','수원','평택','2팀','3팀','4팀','5팀','6팀','거래내역'];
 const CATS=['채혈채뇨','공용물품','청력','HRV','EKG','폐활량','전체'];
-const CCOLORS={'채혈채뇨':'#2563EB','공용물품':'#6B7280','청력':'#D97706','HRV':'#16A34A','EKG':'#7C3AED','폐활량':'#475569','전체':'#059669'};
+const CCOLORS={'채혈채뇨':'#2563EB','공용물품':'#6B7280','청력':'#D97706','HRV':'#84CC16','EKG':'#7C3AED','폐활량':'#475569','전체':'#059669'};
+
+/* ── 카테고리 수동 보정표 (구글시트에서 HRV로 분류되지 않는 품목을 강제로 HRV로 표시) ── */
+const CATEGORY_OVERRIDE_MAP={
+  'HRV 왼손 접지전근':'HRV',
+  'HRV 오른손 접지전근':'HRV',
+  'HRV 왼발 접지전근':'HRV'
+};
 
 /* ── 단위 환산 수동 보정표 (구글시트 메모에 환산식이 없는 경우를 위한 폴백) ── */
 const UNIT_CONV_MAP={
@@ -305,8 +312,8 @@ const UNIT_CONV_MAP={
   'Luer adapter':'1PK=100EA',
   '원형밴드':'1BX=20EA',
   '면반창고 (트랜스포어)':'1PK=12EA',
-  '10종 소변스틱':'1PK=10EA',
-  '4종 소변스틱':'1PK=10EA',
+  '10종 소변스틱':'1PK=10EA 1BX=10PK',
+  '4종 소변스틱':'1PK=10EA 1BX=10PK',
   'Cotinine':'1BX=25EA',
   '메디젝 튜브':'1BX=10PK',
   '종이컵':'1BX=20EA'
@@ -321,6 +328,10 @@ function applyUnitOverrides(list){
     var ov=UNIT_CONV_MAP[nm];
     if(ov && !hasConv(it.memo)){
       it.memo = it.memo ? (it.memo+' '+ov) : ov;
+    }
+    var catOv=CATEGORY_OVERRIDE_MAP[nm];
+    if(catOv){
+      it.category = catOv;
     }
     return it;
   });
