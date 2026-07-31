@@ -262,9 +262,10 @@ function updateSelection(){document.querySelectorAll('#appEquip .equipment-check
 function updatePreview(){updateTopButtons()}
 function updateTopButtons(){const topBtn=document.getElementById('topButtons');if(!topBtn)return;if(selectedEquipments.size===0){topBtn.innerHTML='';return}let html='<div style="padding:10px;background:#f8f9fa;border-radius:8px;position:sticky;top:0;z-index:10"><div style="display:flex;justify-content:space-between;align-items:center"><div style="flex:1"><strong>선택된 장비 ('+selectedEquipments.size+'개):</strong> ';const its=[];selectedEquipments.forEach((item,asset)=>{its.push(item.category+'-'+item.assetNo)});html+=its.join(', ')+'</div><div style="display:flex;gap:8px"><button class="action-btn-small" onclick="showEmailModal()">📧 메일</button><button class="action-btn-small" style="background:#27ae60" onclick="showActionModal()">✅ 작업</button></div></div></div>';topBtn.innerHTML=html}
 function showActionModal(){if(selectedEquipments.size===0){alert('장비를 선택하세요');return}let html='<div style="margin-bottom:20px;font-size:18px;font-weight:bold">작업 선택 ('+selectedEquipments.size+'개)</div>';html+='<button class="action-btn" onclick="selectAction(\'수령\')">수령</button>';html+='<button class="action-btn" onclick="selectAction(\'수령예정\')">수령예정</button>';html+='<button class="action-btn" onclick="selectAction(\'반납\')">반납</button>';html+='<button class="action-btn" onclick="selectAction(\'보유\')">보유</button>';document.getElementById('actionContent').innerHTML=html;document.getElementById('actionModal').style.display='block'}
-function selectAction(action){let userTeam=(currentUser&&currentUser.team)?String(currentUser.team).replace(/팀$/,''):'';if(userTeam==='1')userTeam='화성';let html='<div style="margin-bottom:20px;font-size:18px;font-weight:bold">'+action+'</div>';html+='<label style="display:block;margin-bottom:5px;font-weight:bold">이름</label>';html+='<input type="text" id="actionName" value="'+(currentUser?currentUser.name:'')+'" readonly style="background:#f0f0f0;margin-bottom:10px">';html+='<label style="display:block;margin-bottom:5px;font-weight:bold">'+(action==='수령예정'?'현재 장비 위치':'팀 선택')+'</label>';html+='<select id="actionTeam"><option value="">팀 선택</option>'+LOCS.map(l=>'<option value="'+l+'" '+(l===userTeam?'selected':'')+'>'+(/^[1-6]$/.test(l)?l+'팀':l)+'</option>').join('')+'</select>';if(action==='반납'){html+='<select id="returnReason"><option value="">반납사유</option><option value="팀해체">팀해체</option><option value="장비점검">장비점검</option><option value="의공실">의공실</option><option value="기타">기타</option></select>';html+='<input type="text" id="returnReasonEtc" placeholder="기타 사유" style="display:none">';}if(action==='수령예정'){html+='<label style="display:block;margin-bottom:5px;font-weight:bold">이동할 위치</label>';html+='<select id="destTeam"><option value="">목적지</option>'+LOCS.map(l=>'<option value="'+l+'">'+(/^[1-6]$/.test(l)?l+'팀':l)+'</option>').join('')+'</select>';}html+='<div class="radio-group"><label class="radio-label"><input type="radio" name="memo" value="없음" checked onchange="document.getElementById(\'memoText\').style.display=\'none\'"> 특이사항 없음</label><label class="radio-label"><input type="radio" name="memo" value="있음" onchange="document.getElementById(\'memoText\').style.display=\'block\'"> 특이사항 있음</label></div>';html+='<input type="text" id="memoText" placeholder="특이사항 입력" style="display:none">';html+='<button class="action-btn" onclick="submitAction(\''+action+'\')">등록</button>';document.getElementById('actionContent').innerHTML=html;if(action==='반납'){document.getElementById('returnReason').onchange=function(){document.getElementById('returnReasonEtc').style.display=this.value==='기타'?'block':'none'}}}
+function selectAction(action){let userTeam=(currentUser&&currentUser.team)?String(currentUser.team).replace(/팀$/,''):'';if(userTeam==='1')userTeam='화성';let html='<div style="margin-bottom:20px;font-size:18px;font-weight:bold">'+action+'</div>';html+='<label style="display:block;margin-bottom:5px;font-weight:bold">이름</label>';html+='<input type="text" id="actionName" value="'+(currentUser?currentUser.name:'')+'" readonly style="background:#f0f0f0;margin-bottom:10px">';html+='<label style="display:block;margin-bottom:5px;font-weight:bold">팀 선택</label>';html+='<select id="actionTeam"><option value="">팀 선택</option>'+LOCS.map(l=>'<option value="'+l+'" '+(l===userTeam?'selected':'')+'>'+(/^[1-6]$/.test(l)?l+'팀':l)+'</option>').join('')+'</select>';if(action==='반납'){html+='<select id="returnReason"><option value="">반납사유</option><option value="팀해체">팀해체</option><option value="장비점검">장비점검</option><option value="의공실">의공실</option><option value="기타">기타</option></select>';html+='<input type="text" id="returnReasonEtc" placeholder="기타 사유" style="display:none">';}if(action==='수령예정'){html+='<select id="destTeam"><option value="">목적지</option>'+LOCS.map(l=>'<option value="'+l+'">'+(/^[1-6]$/.test(l)?l+'팀':l)+'</option>').join('')+'</select>';}html+='<div class="radio-group"><label class="radio-label"><input type="radio" name="memo" value="없음" checked onchange="toggleMemo(false)"> 특이사항 없음</label><label class="radio-label"><input type="radio" name="memo" value="있음" onchange="toggleMemo(true)"> 특이사항 있음</label></div>';html+='<input type="text" id="memoText" placeholder="특이사항 입력" style="display:none">';html+='<button class="action-btn" onclick="submitAction(\''+action+'\')">등록</button>';document.getElementById('actionContent').innerHTML=html;if(action==='반납'){document.getElementById('returnReason').onchange=function(){document.getElementById('returnReasonEtc').style.display=this.value==='기타'?'block':'none'}}}
+function toggleMemo(show){document.getElementById('memoText').style.display=show?'block':'none'}
 function closeActionModal(){document.getElementById('actionModal').style.display='none'}
-async function submitAction(action){const name=document.getElementById('actionName').value;let team=document.getElementById('actionTeam').value;if(!name||!team){alert('이름과 팀을 입력하세요');return}if(team==='1')team='화성';const hasMemo=document.querySelector('input[name="memo"]:checked').value==='있음';let memo='특이사항 없음';if(hasMemo){const memoInput=document.getElementById('memoText').value.trim();if(!memoInput){alert('특이사항을 입력하세요');return}memo=memoInput}let newLocation=team;const teamLabel=/^[2-6]$/.test(team)?team+'팀':team;let cellValue=teamLabel+' '+action+' ('+name+' - '+memo+')';if(action==='반납'){const reason=document.getElementById('returnReason').value;if(!reason){alert('반납사유를 선택하세요');return}const reasonText=reason==='기타'?document.getElementById('returnReasonEtc').value:reason;if(reason==='의공실'){newLocation='의공실'}else{newLocation='사무실'}cellValue=teamLabel+' 반납 (반납사유-'+reasonText+'/'+name+' - '+memo+')';}else if(action==='수령예정'){const dest=document.getElementById('destTeam').value;if(!dest){alert('이동할 위치를 선택하세요');return}const destName=dest==='1'?'화성':dest;const destLabel=/^[2-6]$/.test(destName)?destName+'팀':destName;newLocation=team;cellValue=destLabel+' 수령예정 ('+name+' - '+memo+')';}else if(action==='보유'){cellValue=teamLabel+' 보유 ('+name+' - '+memo+')';}const locationLabel=/^[2-6]$/.test(newLocation)?newLocation+'팀':newLocation;const entries=Array.from(selectedEquipments.values()).map(e=>({category:e.category,assetNo:e.assetNo,newLocation:locationLabel+' ('+(new Date().getMonth()+1).toString().padStart(2,'0')+'/'+(new Date().getDate()).toString().padStart(2,'0')+')',cellValue:cellValue}));showLoading(true);try{const res=await fetch(EQUIP_API,{method:'POST',body:JSON.stringify({action:'update',entries:entries})});const result=await res.json();showLoading(false);if(result.success){closeActionModal();selectedEquipments.clear();updatePreview();alert('등록 완료');load(true)}else{alert('등록 실패: '+result.error)}}catch(e){showLoading(false);alert('등록 실패: '+e.message)}}
+async function submitAction(action){const name=document.getElementById('actionName').value;let team=document.getElementById('actionTeam').value;if(!name||!team){alert('이름과 팀을 입력하세요');return}if(team==='1')team='화성';const hasMemo=document.querySelector('input[name="memo"]:checked').value==='있음';let memo='특이사항 없음';if(hasMemo){const memoInput=document.getElementById('memoText').value.trim();if(!memoInput){alert('특이사항을 입력하세요');return}memo=memoInput}let newLocation=team;const teamLabel=/^[2-6]$/.test(team)?team+'팀':team;let cellValue=teamLabel+' '+action+' ('+name+' - '+memo+')';if(action==='반납'){const reason=document.getElementById('returnReason').value;if(!reason){alert('반납사유를 선택하세요');return}const reasonText=reason==='기타'?document.getElementById('returnReasonEtc').value:reason;if(reason==='의공실'){newLocation='의공실'}else{newLocation='사무실'}cellValue=teamLabel+' 반납 (반납사유-'+reasonText+'/'+name+' - '+memo+')';}else if(action==='수령예정'){const dest=document.getElementById('destTeam').value;if(!dest){alert('목적지를 선택하세요');return}newLocation=dest==='1'?'화성':dest;cellValue=teamLabel+' 수령예정 ('+name+' - '+memo+')';}else if(action==='보유'){cellValue=teamLabel+' 보유 ('+name+' - '+memo+')';}const locationLabel=/^[2-6]$/.test(newLocation)?newLocation+'팀':newLocation;const entries=Array.from(selectedEquipments.values()).map(e=>({category:e.category,assetNo:e.assetNo,newLocation:locationLabel+' ('+(new Date().getMonth()+1).toString().padStart(2,'0')+'/'+(new Date().getDate()).toString().padStart(2,'0')+')',cellValue:cellValue}));showLoading(true);try{const res=await fetch(EQUIP_API,{method:'POST',body:JSON.stringify({action:'update',entries:entries})});const result=await res.json();showLoading(false);if(result.success){closeActionModal();selectedEquipments.clear();updatePreview();alert('등록 완료');load(true)}else{alert('등록 실패: '+result.error)}}catch(e){showLoading(false);alert('등록 실패: '+e.message)}}
 function showEmailModal(){if(selectedEquipments.size===0){alert('장비를 선택하세요');return}selectedSender=currentUser?currentUser.name:null;const names=Object.keys(EMAILS);let equipList='<div style="margin-bottom:15px;padding:15px;background:#fff;border:2px solid #0984e3;border-radius:8px;max-height:200px;overflow-y:auto"><div style="font-weight:bold;margin-bottom:10px;color:#0984e3">선택된 장비 ('+selectedEquipments.size+'개)</div>';selectedEquipments.forEach((item)=>{equipList+='<div style="padding:5px;border-bottom:1px solid #eee;font-size:14px">• '+item.category+' - '+item.assetNo+'</div>'});equipList+='</div>';let html='';if(selectedSender&&EMAILS[selectedSender]){html+='<div style="margin-bottom:15px;padding:10px;background:#e8f5e9;border-radius:8px;color:#27ae60;font-weight:bold">📤 보내는 사람: '+selectedSender+'</div>'}html+=equipList+'<div style="margin-bottom:20px;font-size:18px;font-weight:bold">받는 사람 선택</div>';html+=names.map(name=>'<button class="recipient-btn" onclick="sendEmail(\''+name+'\')">'+name+'<br><small style="color:#636e72">'+EMAILS[name]+'</small></button>').join('');document.getElementById('modalContent').innerHTML=html;document.getElementById('emailModal').style.display='block'}
 async function sendEmail(recipientName){if(!selectedSender||selectedEquipments.size===0)return;document.getElementById('modalContent').innerHTML='<div style="text-align:center;padding:40px"><div style="font-size:40px">📧</div><div style="margin-top:20px;font-size:18px;font-weight:bold">메일 전송 중...</div></div>';try{const selectedArray=Array.from(selectedEquipments.values());const numberedEquip=selectedArray.map((item,index)=>{let equipData={'순번':index+1,'기기명':item.name,'모델':'','S/N':''};if(item.category==='폐활량'&&LUNG[item.assetNo]){equipData['모델']=LUNG[item.assetNo].model;equipData['S/N']=LUNG[item.assetNo].sn}else{equipData['모델']=item.model||'';equipData['S/N']=item.serial||''}return equipData});const ws=XLSX.utils.json_to_sheet(numberedEquip);ws['!cols']=[{wch:8},{wch:40},{wch:25},{wch:28}];const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'장비목록');const wbout=XLSX.write(wb,{bookType:'xlsx',type:'base64'});const fileName='장비목록_'+selectedEquipments.size+'개_'+new Date().toISOString().slice(0,10)+'.xlsx';await fetch(MAIL_API,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({recipient:EMAILS[recipientName],sender:EMAILS[selectedSender],senderName:selectedSender,locationName:currentLoc||currentCat||'장비',excelBase64:wbout,fileName:fileName})});selectedEquipments.clear();updatePreview();if(mode==='equip'){showEquipList()}else{showLocationList()}document.getElementById('modalContent').innerHTML='<div style="text-align:center;padding:40px"><div style="font-size:60px">📨</div><div style="margin-top:20px;font-size:18px;font-weight:bold;color:#00b894">메일 전송 완료!</div><div style="margin-top:10px;color:#636e72">'+selectedSender+' → '+recipientName+'</div><button class="recipient-btn" onclick="eqCloseModal()" style="margin-top:20px">닫기</button></div>'}catch(e){document.getElementById('modalContent').innerHTML='<div style="text-align:center;padding:40px"><div style="font-size:60px">❌</div><div style="margin-top:20px;font-size:18px;font-weight:bold;color:#d63031">전송 실패</div><button class="recipient-btn" onclick="eqCloseModal()" style="margin-top:20px">닫기</button></div>'}}
 function eqCloseModal(){selectedSender=null;document.getElementById('emailModal').style.display='none'}
@@ -282,142 +283,69 @@ async function deleteUserAction(empId,name){if(!confirm(name+' 삭제?'))return;
 /* ================================================================
    소모품관리
    ================================================================ */
-const INV_API='https://script.google.com/macros/s/AKfycby59UE3k3ISO7vxYK8YKz_36ebEf57pVOqlGXjeXCnoK4pfLiiR0WkEmKlxYD8ySWMF/exec';
+const INV_API='https://script.google.com/macros/s/AKfycbyw8sVrUQ0iDFo_emFnPgV8p-nfugNtSE5cHwfV4xrEHrg4QoBjCwx8gnJNOD6VkoAg/exec';
 const INV_ADMIN='218062';
 const TABS=['창고','화성','수원','평택','2팀','3팀','4팀','5팀','6팀','거래내역'];
 const CATS=['채혈채뇨','공용물품','청력','HRV','EKG','폐활량','전체'];
-const CCOLORS={'채혈채뇨':'#2563EB','공용물품':'#6B7280','청력':'#D97706','HRV':'#84CC16','EKG':'#7C3AED','폐활량':'#475569','전체':'#059669'};
-
-/* ── 카테고리 수동 보정표 (구글시트에서 HRV로 분류되지 않는 품목을 강제로 HRV로 표시) ── */
-const CATEGORY_OVERRIDE_MAP={
-  'HRV 왼손 접지전근':'HRV',
-  'HRV 오른손 접지전근':'HRV',
-  'HRV 왼발 접지전근':'HRV'
-};
-
-/* ── 단위 환산 수동 보정표 (구글시트 메모에 환산식이 없는 경우를 위한 폴백) ──
-   [수정] Pronto Holder / Luer adapter는 "1BX=xxEA"로, 소변스틱 2종은 "1BX=10PK"만 남김.
-   (기존에 PK 기준으로 잘못 적혀있던 것을 BX 기준으로 정정 + 불필요한 이중 환산식 제거) */
-const UNIT_CONV_MAP={
-  '손소독제':'1BX=12EA',
-  '알콜솜 (200매)':'1BX=48EA',
-  '알콜솜 (100매)':'1BX=12EA',
-  'PLAIN':'1BX=12PK',
-  'SST':'1BX=12PK',
-  'EDTA':'1BX=12PK',
-  'Heparin':'1BX=12PK',
-  'Sod.citrate':'1PK=100EA',
-  'Pronto Holder':'1BX=20EA',
-  '니들폐기물통':'1PK=5EA',
-  '니들 21G':'1BX=10EA',
-  '니들 22G':'1BX=10EA',
-  'Luer adapter':'1BX=100EA',
-  '원형밴드':'1BX=20EA',
-  '면반창고 (트랜스포어)':'1PK=12EA',
-  '10종 소변스틱':'1BX=10PK',
-  '4종 소변스틱':'1BX=10PK',
-  'Cotinine':'1BX=25EA',
-  '메디젝 튜브':'1BX=10PK',
-  '종이컵':'1BX=20EA'
-};
-
-function hasConv(memo){
-  if(!memo) return false;
-  return /1\s*BX\s*[=x×→]\s*\d+\s*EA/i.test(memo) || /1\s*PK\s*[=x×→]\s*\d+\s*EA/i.test(memo) || /1\s*BX\s*[=x×→]\s*\d+\s*PK/i.test(memo);
-}
-function applyUnitOverrides(list){
-  return (list||[]).map(function(it){
-    var nm=(it.name||'').trim();
-    var ov=UNIT_CONV_MAP[nm];
-    if(ov && !hasConv(it.memo)){
-      it.memo = it.memo ? (it.memo+' '+ov) : ov;
-    }
-    var catOv=CATEGORY_OVERRIDE_MAP[nm];
-    if(catOv){
-      it.category = catOv;
-    }
-    return it;
-  });
-}
-
-/* ── [핵심 규칙] 기준(저장) 단위는 "메모에 정의된 가장 작은 단위"로 항상 자동 결정한다 ──
-   손으로 품목별 예외를 등록하는 방식(과거 BASE_UNIT_OVERRIDE_MAP)은 틀리기 쉬우므로 폐기.
-   대신 다음 규칙을 모든 품목에 동일하게 적용:
-     - 메모에 "1BX=n EA" 또는 "1PK=n EA"가 하나라도 있으면 → 기준 단위는 무조건 EA
-       (EA는 항상 원자 단위. PK/BX 크기가 몇이든 1EA=1EA, 절대 소수로 안 쪼개짐)
-     - EA 환산식이 없고 "1BX=n PK"만 있으면 → 기준 단위는 PK
-       (이런 품목은 애초에 낱개(EA) 단위로 세지 않는 품목)
-     - 둘 다 없으면 → 시트의 단위(item.unit) 값을 그대로 사용 (fallback) */
-function computeBaseUnit(item){
-  var memo = item && item.memo || '';
-  var hasEA = /1\s*BX\s*[=x×→]\s*\d+\s*EA/i.test(memo) || /1\s*PK\s*[=x×→]\s*\d+\s*EA/i.test(memo);
-  if(hasEA) return 'EA';
-  var hasBxPk = /1\s*BX\s*[=x×→]\s*\d+\s*PK/i.test(memo);
-  if(hasBxPk) return 'PK';
-  return (item && item.unit) || 'EA';
-}
+const CCOLORS={'채혈채뇨':'#2563EB','공용물품':'#6B7280','청력':'#D97706','HRV':'#0891B2','EKG':'#7C3AED','폐활량':'#475569','전체':'#059669'};
 
 let invUser=null,curTab='창고',curCat='채혈채뇨',items=[],teamStocks={},txs=[],pendingOut=null,pendingAction=null;
 
-/* ── 단위변환 (BX > PK > EA, item.unit = 실제 저장 기준 단위) ── */
+/* ── 단위변환 ── */
+// baseUnit = B열 단위 (PK, EA, BX 등)
+// r.BX = 1BX당 baseUnit 개수, r.PK = 1PK당 baseUnit 개수
 function parseR(memo, baseUnit){
-  // 반환값: 각 단위 1개 = base 단위 몇 개인지. base 자신은 1. 정의 안 된 단위는 null.
-  var r = {BX:null, PK:null, EA:null};
-  baseUnit = baseUnit || 'EA';
-  r[baseUnit] = 1;
+  var r={BX:null,PK:null};
   if(!memo) return r;
+  baseUnit=baseUnit||'EA';
 
-  var mBxEa = memo.match(/1\s*BX\s*[=x×→]\s*(\d+)\s*EA/i);
-  var mPkEa = memo.match(/1\s*PK\s*[=x×→]\s*(\d+)\s*EA/i);
-  var mBxPk = memo.match(/1\s*BX\s*[=x×→]\s*(\d+)\s*PK/i);
+  if(baseUnit==='PK'){
+    // 1BX=12PK → r.BX=12 (BX→PK)
+    var m=memo.match(/1\s*BX\s*[=→x×]\s*(\d+)\s*PK/i);
+    if(m) r.BX=parseInt(m[1]);
+    // PK가 기본단위이므로 r.PK는 필요없음 (선택시 그냥 1)
 
-  var bxEa = mBxEa ? parseInt(mBxEa[1]) : null;
-  var pkEa = mPkEa ? parseInt(mPkEa[1]) : null;
-  var bxPk = mBxPk ? parseInt(mBxPk[1]) : null;
+  } else if(baseUnit==='EA'){
+    // 1BX=12EA
+    var m1=memo.match(/1\s*BX\s*[=→x×]\s*(\d+)\s*EA/i);
+    if(m1) r.BX=parseInt(m1[1]);
+    // 1PK=6EA
+    var m2=memo.match(/1\s*PK\s*[=→x×]\s*(\d+)\s*EA/i);
+    if(m2) r.PK=parseInt(m2[1]);
+    // 1BX=12PK 간접 (1PK=6EA도 있어야 계산가능)
+    if(!r.BX){
+      var m3=memo.match(/1\s*BX\s*[=→x×]\s*(\d+)\s*PK/i);
+      if(m3&&r.PK) r.BX=parseInt(m3[1])*r.PK;
+    }
 
-  if(bxEa==null && bxPk!=null && pkEa!=null) bxEa = bxPk*pkEa;
-  if(pkEa==null && bxEa!=null && bxPk!=null) pkEa = bxEa/bxPk;
-
-  if(baseUnit==='EA'){
-    r.PK = pkEa;
-    r.BX = bxEa;
-  } else if(baseUnit==='PK'){
-    r.BX = bxPk!=null ? bxPk : (bxEa!=null && pkEa!=null ? bxEa/pkEa : null);
-    r.EA = pkEa;
   } else if(baseUnit==='BX'){
-    r.PK = bxPk!=null ? 1/bxPk : null;
-    r.EA = bxEa!=null ? 1/bxEa : null;
+    // BX가 기본단위, 더 큰 단위 없음
+    r.BX=null;
   }
-  r[baseUnit] = 1;
   return r;
 }
 
-// 입력 단위(u)의 수량(q) → base 단위 수량. 환산 정보가 없으면 null 반환(호출부에서 막아야 함)
-function toBase(q, u, r, baseUnit){
-  if(u === baseUnit) return q;
-  var mult = r[u];
-  if(mult == null) return null;
-  return q * mult;
+// qty를 unit으로 선택했을 때 baseUnit 기준 수량 반환
+function toBase(q,u,r,baseUnit){
+  baseUnit=baseUnit||'EA';
+  if(u===baseUnit) return q;           // 이미 기본단위
+  if(u==='BX'&&r.BX) return q*r.BX;   // BX→baseUnit
+  if(u==='PK'&&r.PK) return q*r.PK;   // PK→baseUnit (EA기준일때)
+  return q;
 }
 
-// base 단위 총량(n) → BX > PK > EA 순서로 사람이 읽는 형태로 변환 (base보다 작은 단위는 표시 안 함)
-function dispQty(n, r, baseUnit){
-  baseUnit = baseUnit || 'EA';
-  n = Math.max(0, Number(n) || 0);
-  var order = ['BX','PK','EA'];
-  var biggerUnits = order.slice(0, order.indexOf(baseUnit));
-  var rem = n, parts = [];
-  biggerUnits.forEach(function(u){
-    var mult = r[u];
-    if(mult && rem >= mult){
-      var v = Math.floor(rem / mult);
-      rem = rem % mult;
-      if(v) parts.push(v+u);
-    }
-  });
-  if(rem || !parts.length) parts.push(rem + baseUnit);
-  return parts.join(' ');
+// baseUnit 기준 수량 n을 BX+PK+unit 형식으로 표시
+function dispQty(n,r,baseUnit){
+  n=Math.max(0,parseInt(n)||0);
+  baseUnit=baseUnit||'EA';
+  if(!r.BX&&!r.PK) return n+' '+baseUnit;
+  var rem=n,p=[];
+  if(r.BX&&rem>=r.BX){var v=Math.floor(rem/r.BX);rem=rem%r.BX;if(v)p.push(v+'BX');}
+  if(r.PK&&rem>=r.PK){var v=Math.floor(rem/r.PK);rem=rem%r.PK;if(v)p.push(v+'PK');}
+  if(rem||!p.length) p.push(rem+baseUnit);
+  return p.join(' ');
 }
+
 
 /* ── 유틸 ── */
 function ig(id){return document.getElementById(id);}
@@ -478,10 +406,10 @@ function buildCats(){
 function goTab(t){curTab=t;buildTabs();buildCats();render();}
 function goCat(c){curCat=c;buildCats();render();}
 function loadData(force){
-  if(!force){var c=localStorage.getItem('invCache');if(c){try{var p=JSON.parse(c);if(Date.now()-p.t<180000){items=applyUnitOverrides(p.items);teamStocks=p.ts;txs=p.txs;render();return;}}catch(e){}}}
+  if(!force){var c=localStorage.getItem('invCache');if(c){try{var p=JSON.parse(c);if(Date.now()-p.t<180000){items=p.items;teamStocks=p.ts;txs=p.txs;render();return;}}catch(e){}}}
   invGet('getAll',function(err,d){
     if(err){alert('로딩 실패');return;}
-    items=applyUnitOverrides(d.items||[]);teamStocks=d.teamStocks||{};txs=d.transactions||[];
+    items=d.items||[];teamStocks=d.teamStocks||{};txs=d.transactions||[];
     localStorage.setItem('invCache',JSON.stringify({items:items,ts:teamStocks,txs:txs,t:Date.now()}));
     render();
   });
@@ -496,10 +424,9 @@ function render(){
   var q=ig('srchIn')?ig('srchIn').value.toLowerCase():'';
   var isWH=curTab==='창고';
   var list=items.map(function(i){
-    var baseUnit=computeBaseUnit(i);
-    var r=parseR(i.memo,baseUnit);
+    var r=parseR(i.memo,i.unit);
     var eaQty=isWH?i.eaQty:((teamStocks[curTab]||{})[i.name]?teamStocks[curTab][i.name].eaQty:0);
-    return{name:i.name,unit:baseUnit,memo:i.memo,category:i.category,eaQty:eaQty,r:r,dsp:dispQty(eaQty,r,baseUnit)};
+    return{name:i.name,unit:i.unit,memo:i.memo,category:i.category,eaQty:eaQty,r:r,dsp:dispQty(eaQty,r,i.unit)};
   }).filter(function(i){
     if(q&&i.name.toLowerCase().indexOf(q)<0)return false;
     if(curCat!=='전체'&&i.category!==curCat)return false;
@@ -526,19 +453,11 @@ function invCard(i,isWH){
   var col=CCOLORS[i.category]||'#94A3B8';
   var low=i.eaQty>0&&i.eaQty<5;
   var qc=i.eaQty>0?(low?'low':'pos'):i.eaQty<0?'neg':'zero';
-  var baseUnit=i.unit||'EA';
   var r=i.r;
+  var bxL=r.BX?'BX(1='+r.BX+(i.unit||'EA')+')':'BX';
+  var pkL=r.PK?'PK(1='+r.PK+(i.unit||'EA')+')':'PK';
   var nm=i.name.replace(/'/g,"\\'");
-
-  // base 단위 + 메모에 환산이 정의된 단위만 선택지로 노출 (정의 안 된 단위는 숨김 → 오환산 방지)
-  var order=['BX','PK','EA'];
-  var opts=order.filter(function(u){return u===baseUnit||r[u]!=null;});
-  var optHtml=opts.map(function(u){
-    var label=u;
-    if(u!==baseUnit&&r[u]!=null) label+='(1='+r[u]+baseUnit+')';
-    return '<option value="'+u+'"'+(u===baseUnit?' selected':'')+'>'+label+'</option>';
-  }).join('');
-
+  var defUnit=i.unit||'EA';
   var btns=isWH
     ?'<button class="ia in" onclick="doIn1(\''+nm+'\')">📥입고</button><button class="ia out" onclick="doOut1(\''+nm+'\')">📤출고</button>'
     :'<button class="ia ret" onclick="doRet1(\''+nm+'\')">↩반납</button><button class="ia con" onclick="doCon1(\''+nm+'\')">🔥소비</button>';
@@ -550,7 +469,11 @@ function invCard(i,isWH){
     +'</div>'
     +'<div class="icard-bot">'
     +'<input type="number" class="inum" id="qn_'+ieid(i.name)+'" value="1" min="1">'
-    +'<select class="isel" id="un_'+ieid(i.name)+'">'+optHtml+'</select>'
+    +'<select class="isel" id="un_'+ieid(i.name)+'">'
+    +'<option value="EA"'+(defUnit==='EA'?' selected':'')+'>EA</option>'
+    +'<option value="PK"'+(defUnit==='PK'?' selected':'')+'>'+pkL+'</option>'
+    +'<option value="BX"'+(defUnit==='BX'?' selected':'')+'>'+bxL+'</option>'
+    +'</select>'
     +btns
     +'</div></div>';
 }
@@ -559,13 +482,11 @@ function invCard(i,isWH){
 function doIn1(name){
   var i=null;for(var k=0;k<items.length;k++){if(items[k].name===name){i=items[k];break;}}
   if(!i)return;
-  var baseUnit=computeBaseUnit(i);
-  var r=parseR(i.memo,baseUnit);
+  var r=parseR(i.memo,i.unit);
   var qty=parseInt(ig('qn_'+ieid(name)).value)||1;
-  var unit=ig('un_'+ieid(name)).value||baseUnit;
-  var eaQty=toBase(qty,unit,r,baseUnit);
-  if(eaQty==null){alert('이 물품은 '+unit+' 단위 환산 정보가 메모에 없습니다.');return;}
-  invPost({action:'warehouseIn',items:[{name:name,unit:baseUnit,memo:i.memo,category:i.category,inputQty:qty,inputUnit:unit,eaQty:eaQty}],user:invUser.name},function(err,res){
+  var unit=ig('un_'+ieid(name)).value||'EA';
+  var eaQty=toBase(qty,unit,r,i.unit);
+  invPost({action:'warehouseIn',items:[{name:name,unit:i.unit,memo:i.memo,category:i.category,inputQty:qty,inputUnit:unit,eaQty:eaQty}],user:invUser.name},function(err,res){
     if(err){alert('오류');return;}
     if(res.success){invReload();alert('입고 완료!');}else alert('오류: '+res.error);
   });
@@ -575,13 +496,10 @@ function doIn1(name){
 function doOut1(name){
   var i=null;for(var k=0;k<items.length;k++){if(items[k].name===name){i=items[k];break;}}
   if(!i)return;
-  var baseUnit=computeBaseUnit(i);
-  var r=parseR(i.memo,baseUnit);
+  var r=parseR(i.memo,i.unit);
   var qty=parseInt(ig('qn_'+ieid(name)).value)||1;
-  var unit=ig('un_'+ieid(name)).value||baseUnit;
-  var eaQty=toBase(qty,unit,r,baseUnit);
-  if(eaQty==null){alert('이 물품은 '+unit+' 단위 환산 정보가 메모에 없습니다.');return;}
-  pendingOut={name:name,item:i,qty:qty,unit:unit,eaQty:eaQty};
+  var unit=ig('un_'+ieid(name)).value||'EA';
+  pendingOut={name:name,item:i,qty:qty,unit:unit,eaQty:toBase(qty,unit,r)};
   ig('mSheet').innerHTML='<div class="modal-handle"></div>'
     +'<div class="modal-title">📤 출고 - '+name+' '+qty+unit+'</div>'
     +'<div style="font-size:13px;color:var(--sub);margin-bottom:12px">어느 팀으로 출고할까요?</div>'
@@ -593,9 +511,8 @@ function doOut1(name){
 function confirmOut(){
   if(!pendingOut||!pendingOut.team){alert('팀을 선택하세요');return;}
   var po=pendingOut,i=po.item;
-  var baseUnit=computeBaseUnit(i);
   invCloseModal();
-  invPost({action:'warehouseOut',items:[{name:po.name,unit:baseUnit,memo:i.memo,category:i.category,inputQty:po.qty,inputUnit:po.unit,eaQty:po.eaQty}],team:po.team,user:invUser.name},function(err,res){
+  invPost({action:'warehouseOut',items:[{name:po.name,unit:i.unit,memo:i.memo,category:i.category,inputQty:po.qty,inputUnit:po.unit,eaQty:po.eaQty}],team:po.team,user:invUser.name},function(err,res){
     if(err){alert('오류');return;}
     if(res.success){pendingOut=null;invReload();alert(po.team+'으로 출고 완료!');}else alert('오류: '+res.error);
   });
@@ -604,14 +521,11 @@ function confirmOut(){
 /* ── 반납 (팀→창고) ── */
 function doRet1(name){
   var i=null;for(var k=0;k<items.length;k++){if(items[k].name===name){i=items[k];break;}}
-  var baseUnit=i?computeBaseUnit(i):'EA';
-  var r=i?parseR(i.memo,baseUnit):{BX:null,PK:null,EA:null};
+  var r=i?parseR(i.memo,i.unit):{BX:null,PK:null};
   var qty=parseInt(ig('qn_'+ieid(name)).value)||1;
-  var unit=ig('un_'+ieid(name)).value||baseUnit;
-  var eaQty=toBase(qty,unit,r,baseUnit);
-  if(eaQty==null){alert('이 물품은 '+unit+' 단위 환산 정보가 메모에 없습니다.');return;}
+  var unit=ig('un_'+ieid(name)).value||'EA';
   if(!confirm(name+' '+qty+unit+' 창고로 반납?'))return;
-  invPost({action:'teamReturn',items:[{name:name,unit:baseUnit,memo:i?i.memo:'',category:i?i.category:'',inputQty:qty,inputUnit:unit,eaQty:eaQty}],team:curTab,user:invUser.name},function(err,res){
+  invPost({action:'teamReturn',items:[{name:name,unit:i?i.unit:unit,memo:i?i.memo:'',category:i?i.category:'',inputQty:qty,inputUnit:unit,eaQty:toBase(qty,unit,r,i?i.unit:unit)}],team:curTab,user:invUser.name},function(err,res){
     if(err){alert('오류');return;}
     if(res.success){invReload();alert('반납 완료!');}else alert('오류: '+res.error);
   });
@@ -620,14 +534,11 @@ function doRet1(name){
 /* ── 소비 (팀에서 사용, 창고 영향 없음) ── */
 function doCon1(name){
   var i=null;for(var k=0;k<items.length;k++){if(items[k].name===name){i=items[k];break;}}
-  var baseUnit=i?computeBaseUnit(i):'EA';
-  var r=i?parseR(i.memo,baseUnit):{BX:null,PK:null,EA:null};
+  var r=i?parseR(i.memo,i.unit):{BX:null,PK:null};
   var qty=parseInt(ig('qn_'+ieid(name)).value)||1;
-  var unit=ig('un_'+ieid(name)).value||baseUnit;
-  var eaQty=toBase(qty,unit,r,baseUnit);
-  if(eaQty==null){alert('이 물품은 '+unit+' 단위 환산 정보가 메모에 없습니다.');return;}
+  var unit=ig('un_'+ieid(name)).value||'EA';
   if(!confirm(name+' '+qty+unit+' 소비(사용)처리?'))return;
-  invPost({action:'teamConsume',items:[{name:name,unit:baseUnit,memo:i?i.memo:'',category:i?i.category:'',inputQty:qty,inputUnit:unit,eaQty:eaQty}],team:curTab,user:invUser.name},function(err,res){
+  invPost({action:'teamConsume',items:[{name:name,unit:i?i.unit:unit,memo:i?i.memo:'',category:i?i.category:'',inputQty:qty,inputUnit:unit,eaQty:toBase(qty,unit,r,i?i.unit:unit)}],team:curTab,user:invUser.name},function(err,res){
     if(err){alert('오류');return;}
     if(res.success){invReload();alert('소비 처리 완료!');}else alert('오류: '+res.error);
   });
@@ -660,6 +571,7 @@ function invDelU(empId,name){if(!confirm(name+' 삭제?'))return;invPost({action
 <script>
 /* ── 초기화 ── */
 window.onload = function(){
+  // 장비 자동로그인
   var savedLogin=localStorage.getItem('currentLogin');
   if(savedLogin){
     try{
@@ -674,9 +586,11 @@ window.onload = function(){
     }catch(e){document.getElementById('loginScreen').style.display='block';}
   }else{document.getElementById('loginScreen').style.display='block';}
 
+  // 소모품 자동로그인
   var s=localStorage.getItem('invUser');
   if(s){try{invUser=JSON.parse(s);invStartApp();}catch(e){}}
 
+  // 마지막 앱 표시
   switchApp(localStorage.getItem('activeApp')||'equip');
 };
 </script>
