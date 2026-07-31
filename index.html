@@ -295,7 +295,9 @@ const CATEGORY_OVERRIDE_MAP={
   'HRV 왼발 접지전근':'HRV'
 };
 
-/* ── 단위 환산 수동 보정표 (구글시트 메모에 환산식이 없는 경우를 위한 폴백) ── */
+/* ── 단위 환산 수동 보정표 (구글시트 메모에 환산식이 없는 경우를 위한 폴백) ──
+   [수정] Pronto Holder / Luer adapter는 "1BX=xxEA"로, 소변스틱 2종은 "1BX=10PK"만 남김.
+   (기존에 PK 기준으로 잘못 적혀있던 것을 BX 기준으로 정정 + 불필요한 이중 환산식 제거) */
 const UNIT_CONV_MAP={
   '손소독제':'1BX=12EA',
   '알콜솜 (200매)':'1BX=48EA',
@@ -305,18 +307,32 @@ const UNIT_CONV_MAP={
   'EDTA':'1BX=12PK',
   'Heparin':'1BX=12PK',
   'Sod.citrate':'1PK=100EA',
-  'Pronto Holder':'1PK=20EA',
+  'Pronto Holder':'1BX=20EA',
   '니들폐기물통':'1PK=5EA',
   '니들 21G':'1BX=10EA',
   '니들 22G':'1BX=10EA',
-  'Luer adapter':'1PK=100EA',
+  'Luer adapter':'1BX=100EA',
   '원형밴드':'1BX=20EA',
   '면반창고 (트랜스포어)':'1PK=12EA',
-  '10종 소변스틱':'1PK=10EA 1BX=10PK',
-  '4종 소변스틱':'1PK=10EA 1BX=10PK',
+  '10종 소변스틱':'1BX=10PK',
+  '4종 소변스틱':'1BX=10PK',
   'Cotinine':'1BX=25EA',
   '메디젝 튜브':'1BX=10PK',
   '종이컵':'1BX=20EA'
+};
+
+/* ── [추가] 기준(저장) 단위 수동 보정표 ──
+   재고 수량이 저장되는 "기준 단위"를 강제로 지정합니다.
+   백엔드(구글시트)의 단위 컬럼이 실제 관리 단위와 다르게 들어있으면
+   BX<->EA 변환 과정에서 4EA를 빼는데 0.33BX 같은 소수점 값으로
+   계산되는 문제가 생깁니다. 아래 4개 품목은 사용자가 실제로 세는
+   단위(=기준 단위)를 명시적으로 고정해서, 정수 단위(EA/PK)로만
+   입출고가 계산되도록 만듭니다. */
+const BASE_UNIT_OVERRIDE_MAP={
+  'Pronto Holder':'EA',
+  'Luer adapter':'EA',
+  '10종 소변스틱':'PK',
+  '4종 소변스틱':'PK'
 };
 function hasConv(memo){
   if(!memo) return false;
@@ -332,6 +348,10 @@ function applyUnitOverrides(list){
     var catOv=CATEGORY_OVERRIDE_MAP[nm];
     if(catOv){
       it.category = catOv;
+    }
+    var baseOv=BASE_UNIT_OVERRIDE_MAP[nm];
+    if(baseOv){
+      it.unit = baseOv;
     }
     return it;
   });
