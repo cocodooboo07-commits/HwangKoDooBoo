@@ -230,7 +230,7 @@ function switchApp(name){
 /* ================================================================
    장비관리
    ================================================================ */
-const EQUIP_API='https://script.google.com/macros/s/AKfycbwYXky1PZ94h-PI28QRe_tlUxhxenGJ8ldYmhsd2G3NWMuYp3-hkQpVrE1X1l-Sur-A/exec';
+const EQUIP_API='https://script.google.com/macros/s/AKfycby59UE3k3ISO7vxYK8YKz_36ebEf57pVOqlGXjeXCnoK4pfLiiR0WkEmKlxYD8ySWMF/exec';
 const MAIL_API='https://script.google.com/macros/s/AKfycbzNrE3s08iOZndyR7estzZOMw_vd5BHz6zqwd0ogki5m00C6dOxRiySD4VgIy2Io3AQ/exec';
 const LOCS=['화성','2','3','4','5','6','평택','수원','아산1','사무실','의공실','센터','미선택'];
 const EMAILS={'조해영':'hy0617.jo@samsung.com','백수빈':'subeen2319.baek@samsung.com','김보현':'bohyeon6601.kim@samsung.com','이지연':'joanna0812.lee@samsung.com','안성진':'sj0206.ahn@samsung.com','안성진2':'heroboy07@hanmail.net'};
@@ -321,19 +321,6 @@ const UNIT_CONV_MAP={
   '종이컵':'1BX=20EA'
 };
 
-/* ── [추가] 기준(저장) 단위 수동 보정표 ──
-   재고 수량이 저장되는 "기준 단위"를 강제로 지정합니다.
-   백엔드(구글시트)의 단위 컬럼이 실제 관리 단위와 다르게 들어있으면
-   BX<->EA 변환 과정에서 4EA를 빼는데 0.33BX 같은 소수점 값으로
-   계산되는 문제가 생깁니다. 아래 4개 품목은 사용자가 실제로 세는
-   단위(=기준 단위)를 명시적으로 고정해서, 정수 단위(EA/PK)로만
-   입출고가 계산되도록 만듭니다. */
-const BASE_UNIT_OVERRIDE_MAP={
-  'Pronto Holder':'EA',
-  'Luer adapter':'EA',
-  '10종 소변스틱':'PK',
-  '4종 소변스틱':'PK'
-};
 function hasConv(memo){
   if(!memo) return false;
   return /1\s*BX\s*[=x×→]\s*\d+\s*EA/i.test(memo) || /1\s*PK\s*[=x×→]\s*\d+\s*EA/i.test(memo) || /1\s*BX\s*[=x×→]\s*\d+\s*PK/i.test(memo);
@@ -349,12 +336,25 @@ function applyUnitOverrides(list){
     if(catOv){
       it.category = catOv;
     }
-    var baseOv=BASE_UNIT_OVERRIDE_MAP[nm];
-    if(baseOv){
-      it.unit = baseOv;
-    }
     return it;
   });
+}
+
+/* ── [핵심 규칙] 기준(저장) 단위는 "메모에 정의된 가장 작은 단위"로 항상 자동 결정한다 ──
+   손으로 품목별 예외를 등록하는 방식(과거 BASE_UNIT_OVERRIDE_MAP)은 틀리기 쉬우므로 폐기.
+   대신 다음 규칙을 모든 품목에 동일하게 적용:
+     - 메모에 "1BX=n EA" 또는 "1PK=n EA"가 하나라도 있으면 → 기준 단위는 무조건 EA
+       (EA는 항상 원자 단위. PK/BX 크기가 몇이든 1EA=1EA, 절대 소수로 안 쪼개짐)
+     - EA 환산식이 없고 "1BX=n PK"만 있으면 → 기준 단위는 PK
+       (이런 품목은 애초에 낱개(EA) 단위로 세지 않는 품목)
+     - 둘 다 없으면 → 시트의 단위(item.unit) 값을 그대로 사용 (fallback) */
+function computeBaseUnit(item){
+  var memo = item && item.memo || '';
+  var hasEA = /1\s*BX\s*[=x×→]\s*\d+\s*EA/i.test(memo) || /1\s*PK\s*[=x×→]\s*\d+\s*EA/i.test(memo);
+  if(hasEA) return 'EA';
+  var hasBxPk = /1\s*BX\s*[=x×→]\s*\d+\s*PK/i.test(memo);
+  if(hasBxPk) return 'PK';
+  return (item && item.unit) || 'EA';
 }
 
 let invUser=null,curTab='창고',curCat='채혈채뇨',items=[],teamStocks={},txs=[],pendingOut=null,pendingAction=null;
@@ -496,7 +496,7 @@ function render(){
   var q=ig('srchIn')?ig('srchIn').value.toLowerCase():'';
   var isWH=curTab==='창고';
   var list=items.map(function(i){
-    var baseUnit=i.unit||'EA';
+    var baseUnit=computeBaseUnit(i);
     var r=parseR(i.memo,baseUnit);
     var eaQty=isWH?i.eaQty:((teamStocks[curTab]||{})[i.name]?teamStocks[curTab][i.name].eaQty:0);
     return{name:i.name,unit:baseUnit,memo:i.memo,category:i.category,eaQty:eaQty,r:r,dsp:dispQty(eaQty,r,baseUnit)};
@@ -559,7 +559,7 @@ function invCard(i,isWH){
 function doIn1(name){
   var i=null;for(var k=0;k<items.length;k++){if(items[k].name===name){i=items[k];break;}}
   if(!i)return;
-  var baseUnit=i.unit||'EA';
+  var baseUnit=computeBaseUnit(i);
   var r=parseR(i.memo,baseUnit);
   var qty=parseInt(ig('qn_'+ieid(name)).value)||1;
   var unit=ig('un_'+ieid(name)).value||baseUnit;
@@ -575,7 +575,7 @@ function doIn1(name){
 function doOut1(name){
   var i=null;for(var k=0;k<items.length;k++){if(items[k].name===name){i=items[k];break;}}
   if(!i)return;
-  var baseUnit=i.unit||'EA';
+  var baseUnit=computeBaseUnit(i);
   var r=parseR(i.memo,baseUnit);
   var qty=parseInt(ig('qn_'+ieid(name)).value)||1;
   var unit=ig('un_'+ieid(name)).value||baseUnit;
@@ -593,7 +593,7 @@ function doOut1(name){
 function confirmOut(){
   if(!pendingOut||!pendingOut.team){alert('팀을 선택하세요');return;}
   var po=pendingOut,i=po.item;
-  var baseUnit=i.unit||'EA';
+  var baseUnit=computeBaseUnit(i);
   invCloseModal();
   invPost({action:'warehouseOut',items:[{name:po.name,unit:baseUnit,memo:i.memo,category:i.category,inputQty:po.qty,inputUnit:po.unit,eaQty:po.eaQty}],team:po.team,user:invUser.name},function(err,res){
     if(err){alert('오류');return;}
@@ -604,7 +604,7 @@ function confirmOut(){
 /* ── 반납 (팀→창고) ── */
 function doRet1(name){
   var i=null;for(var k=0;k<items.length;k++){if(items[k].name===name){i=items[k];break;}}
-  var baseUnit=i?(i.unit||'EA'):'EA';
+  var baseUnit=i?computeBaseUnit(i):'EA';
   var r=i?parseR(i.memo,baseUnit):{BX:null,PK:null,EA:null};
   var qty=parseInt(ig('qn_'+ieid(name)).value)||1;
   var unit=ig('un_'+ieid(name)).value||baseUnit;
@@ -620,7 +620,7 @@ function doRet1(name){
 /* ── 소비 (팀에서 사용, 창고 영향 없음) ── */
 function doCon1(name){
   var i=null;for(var k=0;k<items.length;k++){if(items[k].name===name){i=items[k];break;}}
-  var baseUnit=i?(i.unit||'EA'):'EA';
+  var baseUnit=i?computeBaseUnit(i):'EA';
   var r=i?parseR(i.memo,baseUnit):{BX:null,PK:null,EA:null};
   var qty=parseInt(ig('qn_'+ieid(name)).value)||1;
   var unit=ig('un_'+ieid(name)).value||baseUnit;
