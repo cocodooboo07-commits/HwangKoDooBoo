@@ -282,6 +282,7 @@ async function deleteUserAction(empId,name){if(!confirm(name+' 삭제?'))return;
 <script>
 const INV_API='https://script.google.com/macros/s/AKfycbxkAD6ubbImMiClL38cZXzF7_lcBzsRze0QsJ1dUg9jjugHgl_205uEwWzMz6YKQ-89/exec';
 const INV_ADMIN='218062';
+const WAREHOUSE_IN_IDS=['218062','218119'];
 const TABS=['창고','화성','수원','평택','아산1','2팀','3팀','4팀','5팀','6팀','거래내역'];
 const CATS=['채혈채뇨','공용물품','청력','HRV','EKG','폐활량','전체'];
 const CCOLORS={'채혈채뇨':'#2563EB','공용물품':'#6B7280','청력':'#D97706','HRV':'#84CC16','EKG':'#7C3AED','폐활량':'#475569','전체':'#059669'};
@@ -465,11 +466,30 @@ function loadData(force){
   invGet('getAll',function(err,d){
     if(err){alert('로딩 실패');return;}
     items=applyUnitOverrides(d.items||[]);teamStocks=d.teamStocks||{};txs=d.transactions||[];
-    localStorage.setItem('invCache',JSON.stringify({items:items,ts:teamStocks,txs:txs,t:Date.now()}));
+    saveInvCache();
     render();
   });
 }
 function invReload(){localStorage.removeItem('invCache');loadData(true);}
+function saveInvCache(){
+  localStorage.setItem('invCache',JSON.stringify({items:items,ts:teamStocks,txs:txs,t:Date.now()}));
+}
+function findItem(name){
+  for(var k=0;k<items.length;k++){ if(items[k].name===name) return items[k]; }
+  return null;
+}
+function getTeamItem(team,name,fallbackItem){
+  teamStocks[team]=teamStocks[team]||{};
+  if(!teamStocks[team][name]){
+    teamStocks[team][name]={
+      eaQty:0,
+      unit:(fallbackItem&&fallbackItem.unit)||'EA',
+      memo:(fallbackItem&&fallbackItem.memo)||'',
+      category:(fallbackItem&&fallbackItem.category)||''
+    };
+  }
+  return teamStocks[team][name];
+}
 
 function render(){
   var el=ig('content');
@@ -521,8 +541,9 @@ function invCard(i,isWH){
     return '<option value="'+u+'"'+(u===defaultSel?' selected':'')+'>'+label+'</option>';
   }).join('');
 
+  var canWarehouseIn = WAREHOUSE_IN_IDS.indexOf(String(invUser.empId))!==-1;
   var btns=isWH
-    ?'<button class="ia in" onclick="doIn1(\''+nm+'\')">📥입고</button><button class="ia out" onclick="doOut1(\''+nm+'\')">📤출고</button>'
+    ?(canWarehouseIn?'<button class="ia in" onclick="doIn1(\''+nm+'\')">📥입고</button>':'')+'<button class="ia out" onclick="doOut1(\''+nm+'\')">📤출고</button>'
     :'<button class="ia ret" onclick="doRet1(\''+nm+'\')">↩반납</button><button class="ia con" onclick="doCon1(\''+nm+'\')">🔥소비</button>';
   return '<div class="icard" id="ic_'+ieid(i.name)+'">'
     +'<div class="icard-top">'
@@ -538,7 +559,8 @@ function invCard(i,isWH){
 }
 
 function doIn1(name){
-  var i=null;for(var k=0;k<items.length;k++){if(items[k].name===name){i=items[k];break;}}
+  if(WAREHOUSE_IN_IDS.indexOf(String(invUser.empId))===-1){alert('입고 권한이 없습니다. (담당자만 가능)');return;}
+  var i=findItem(name);
   if(!i)return;
   var baseUnit=computeBaseUnit(i);
   var r=parseR(i.memo,baseUnit);
@@ -546,14 +568,19 @@ function doIn1(name){
   var unit=ig('un_'+ieid(name)).value||baseUnit;
   var eaQty=toBase(qty,unit,r,baseUnit);
   if(eaQty==null){alert('이 물품은 '+unit+' 단위 환산 정보가 메모에 없습니다.');return;}
+  var prevQty=i.eaQty;
+  i.eaQty=(Number(i.eaQty)||0)+Number(eaQty);
+  saveInvCache();render();
   invPost({action:'warehouseIn',items:[{name:name,unit:baseUnit,memo:i.memo,category:i.category,inputQty:qty,inputUnit:unit,eaQty:eaQty}],user:invUser.name},function(err,res){
-    if(err){alert('오류');return;}
-    if(res.success){invReload();alert('입고 완료!');}else alert('오류: '+res.error);
+    if(err||!res||!res.success){
+      i.eaQty=prevQty;saveInvCache();render();
+      alert('오류: '+(err?err.message:(res&&res.error?res.error:'네트워크 오류')));
+    }
   });
 }
 
 function doOut1(name){
-  var i=null;for(var k=0;k<items.length;k++){if(items[k].name===name){i=items[k];break;}}
+  var i=findItem(name);
   if(!i)return;
   var baseUnit=computeBaseUnit(i);
   var r=parseR(i.memo,baseUnit);
@@ -575,14 +602,24 @@ function confirmOut(){
   var po=pendingOut,i=po.item;
   var baseUnit=computeBaseUnit(i);
   invCloseModal();
+  var prevWhQty=i.eaQty;
+  var teamItem=getTeamItem(po.team,po.name,i);
+  var prevTeamQty=teamItem.eaQty;
+  i.eaQty=(Number(i.eaQty)||0)-Number(po.eaQty);
+  teamItem.eaQty=(Number(teamItem.eaQty)||0)+Number(po.eaQty);
+  saveInvCache();render();
   invPost({action:'warehouseOut',items:[{name:po.name,unit:baseUnit,memo:i.memo,category:i.category,inputQty:po.qty,inputUnit:po.unit,eaQty:po.eaQty}],team:po.team,user:invUser.name},function(err,res){
-    if(err){alert('오류');return;}
-    if(res.success){pendingOut=null;invReload();alert(po.team+'으로 출고 완료!');}else alert('오류: '+res.error);
+    pendingOut=null;
+    if(err||!res||!res.success){
+      i.eaQty=prevWhQty;teamItem.eaQty=prevTeamQty;saveInvCache();render();
+      alert('오류: '+(err?err.message:(res&&res.error?res.error:'네트워크 오류')));
+      return;
+    }
   });
 }
 
 function doRet1(name){
-  var i=null;for(var k=0;k<items.length;k++){if(items[k].name===name){i=items[k];break;}}
+  var i=findItem(name);
   var baseUnit=i?computeBaseUnit(i):'EA';
   var r=i?parseR(i.memo,baseUnit):{BX:null,PK:null,EA:null};
   var qty=parseInt(ig('qn_'+ieid(name)).value)||1;
@@ -590,14 +627,22 @@ function doRet1(name){
   var eaQty=toBase(qty,unit,r,baseUnit);
   if(eaQty==null){alert('이 물품은 '+unit+' 단위 환산 정보가 메모에 없습니다.');return;}
   if(!confirm(name+' '+qty+unit+' 창고로 반납?'))return;
+  var teamItem=getTeamItem(curTab,name,i);
+  var prevTeamQty=teamItem.eaQty;
+  var prevWhQty=i?i.eaQty:null;
+  teamItem.eaQty=Math.max(0,(Number(teamItem.eaQty)||0)-Number(eaQty));
+  if(i) i.eaQty=(Number(i.eaQty)||0)+Number(eaQty);
+  saveInvCache();render();
   invPost({action:'teamReturn',items:[{name:name,unit:baseUnit,memo:i?i.memo:'',category:i?i.category:'',inputQty:qty,inputUnit:unit,eaQty:eaQty}],team:curTab,user:invUser.name},function(err,res){
-    if(err){alert('오류');return;}
-    if(res.success){invReload();alert('반납 완료!');}else alert('오류: '+res.error);
+    if(err||!res||!res.success){
+      teamItem.eaQty=prevTeamQty;if(i)i.eaQty=prevWhQty;saveInvCache();render();
+      alert('오류: '+(err?err.message:(res&&res.error?res.error:'네트워크 오류')));
+    }
   });
 }
 
 function doCon1(name){
-  var i=null;for(var k=0;k<items.length;k++){if(items[k].name===name){i=items[k];break;}}
+  var i=findItem(name);
   var baseUnit=i?computeBaseUnit(i):'EA';
   var r=i?parseR(i.memo,baseUnit):{BX:null,PK:null,EA:null};
   var qty=parseInt(ig('qn_'+ieid(name)).value)||1;
@@ -605,9 +650,15 @@ function doCon1(name){
   var eaQty=toBase(qty,unit,r,baseUnit);
   if(eaQty==null){alert('이 물품은 '+unit+' 단위 환산 정보가 메모에 없습니다.');return;}
   if(!confirm(name+' '+qty+unit+' 소비(사용)처리?'))return;
+  var teamItem=getTeamItem(curTab,name,i);
+  var prevTeamQty=teamItem.eaQty;
+  teamItem.eaQty=Math.max(0,(Number(teamItem.eaQty)||0)-Number(eaQty));
+  saveInvCache();render();
   invPost({action:'teamConsume',items:[{name:name,unit:baseUnit,memo:i?i.memo:'',category:i?i.category:'',inputQty:qty,inputUnit:unit,eaQty:eaQty}],team:curTab,user:invUser.name},function(err,res){
-    if(err){alert('오류');return;}
-    if(res.success){invReload();alert('소비 처리 완료!');}else alert('오류: '+res.error);
+    if(err||!res||!res.success){
+      teamItem.eaQty=prevTeamQty;saveInvCache();render();
+      alert('오류: '+(err?err.message:(res&&res.error?res.error:'네트워크 오류')));
+    }
   });
 }
 
