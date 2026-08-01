@@ -514,7 +514,7 @@ function invCard(i,isWH){
 
   var order=['BX','PK','EA'];
   var opts=order.filter(function(u){return u===baseUnit||r[u]!=null;});
-  var defaultSel=opts.indexOf('BX')!==-1?'BX':baseUnit;
+  var defaultSel=baseUnit;
   var optHtml=opts.map(function(u){
     var label=u;
     if(u!==baseUnit&&r[u]!=null) label+='(1='+r[u]+baseUnit+')';
