@@ -94,6 +94,19 @@ body{font-family:-apple-system,sans-serif;background:var(--bg);color:var(--text)
 #appInv .inum:focus{border-color:var(--blue)}
 #appInv .isel{flex:1;min-width:80px;padding:7px 4px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;background:#fff;outline:none}
 #appInv .isel:focus{border-color:var(--blue)}
+#appInv .uwrap{display:flex;gap:4px;flex:1;min-width:120px}
+#appInv .ubtn{flex:1;padding:7px 4px;border:1.5px solid var(--border);border-radius:8px;font-size:11px;font-weight:700;background:#fff;color:var(--sub);cursor:pointer;white-space:nowrap}
+#appInv .ubtn.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+#appInv .ichk{width:20px;height:20px;margin-right:4px;flex-shrink:0;accent-color:var(--blue);cursor:pointer}
+#appInv .bulkbar{position:sticky;bottom:0;z-index:80;background:#0F172A;color:#fff;padding:10px 14px;display:none;box-shadow:0 -4px 12px rgba(0,0,0,.2)}
+#appInv .bulkbar.show{display:block}
+#appInv .bulkbar-inner{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+#appInv .bulkbar-btns{display:flex;gap:6px}
+#appInv .bulk-btn{padding:8px 12px;border:none;border-radius:8px;font-size:12px;font-weight:700;color:#fff;cursor:pointer}
+#appInv .bulk-btn.in{background:var(--green)}
+#appInv .bulk-btn.out{background:var(--red)}
+#appInv .bulk-btn.ret{background:var(--purple)}
+#appInv .bulk-btn.con{background:var(--orange)}
 #appInv .ia{padding:7px 8px;border:none;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;color:#fff;white-space:nowrap}
 #appInv .ia.in{background:var(--green)}
 #appInv .ia.out{background:var(--red)}
@@ -218,6 +231,7 @@ body{font-family:-apple-system,sans-serif;background:var(--bg);color:var(--text)
   <div class="srch" id="srchBox"><input id="srchIn" placeholder="🔍 물품 검색..." oninput="render()"></div>
   <div class="list" id="content"></div>
   <div class="spacer"></div>
+  <div class="bulkbar" id="bulkBar"></div>
 </div></div>
 
 <script>
@@ -347,7 +361,8 @@ function computeBaseUnit(item){
   return (item && item.unit) || 'EA';
 }
 
-let invUser=null,curTab='창고',curCat='채혈채뇨',items=[],teamStocks={},txs=[],pendingOut=null,pendingAction=null;
+let invUser=null,curTab='창고',curCat='채혈채뇨',items=[],teamStocks={},txs=[],pendingOut=null,pendingAction=null,pendingBulkOut=null;
+let bulkSelected=new Set();
 
 function parseR(memo, baseUnit){
   var r = {BX:null, PK:null, EA:null};
@@ -459,8 +474,8 @@ function buildCats(){
   ig('catBar').innerHTML=CATS.map(function(c){var col=CCOLORS[c],on=c===curCat;return '<button class="cc" data-c="'+c+'" style="'+(on?'background:'+col+';color:#fff;border-color:'+col:'color:'+col+';border-color:'+col+'40')+'">'+c+'</button>';}).join('');
   ig('catBar').querySelectorAll('.cc').forEach(function(btn){btn.onclick=function(){goCat(this.dataset.c);};});
 }
-function goTab(t){curTab=t;buildTabs();buildCats();render();}
-function goCat(c){curCat=c;buildCats();render();}
+function goTab(t){curTab=t;bulkSelected.clear();buildTabs();buildCats();render();}
+function goCat(c){curCat=c;bulkSelected.clear();buildCats();render();}
 function loadData(force){
   if(!force){var c=localStorage.getItem('invCache');if(c){try{var p=JSON.parse(c);if(Date.now()-p.t<180000){items=applyUnitOverrides(p.items);teamStocks=p.ts;txs=p.txs;render();return;}}catch(e){}}}
   invGet('getAll',function(err,d){
@@ -508,7 +523,7 @@ function render(){
     if(!isWH&&i.eaQty<=0)return false;
     return true;
   });
-  if(!list.length){el.innerHTML='<div class="empty">📭<br>물품이 없습니다</div>';return;}
+  if(!list.length){el.innerHTML='<div class="empty">📭<br>물품이 없습니다</div>';renderBulkBar();return;}
   var html='';
   if(curCat==='전체'){
     var grp={};list.forEach(function(i){if(!grp[i.category])grp[i.category]=[];grp[i.category].push(i);});
@@ -522,6 +537,7 @@ function render(){
     list.forEach(function(i){html+=invCard(i,isWH);});
   }
   el.innerHTML=html;
+  renderBulkBar();
 }
 
 function invCard(i,isWH){
@@ -535,27 +551,80 @@ function invCard(i,isWH){
   var order=['BX','PK','EA'];
   var opts=order.filter(function(u){return u===baseUnit||r[u]!=null;});
   var defaultSel=baseUnit;
-  var optHtml=opts.map(function(u){
+  var unitBtnHtml=opts.map(function(u){
     var label=u;
     if(u!==baseUnit&&r[u]!=null) label+='(1='+r[u]+baseUnit+')';
-    return '<option value="'+u+'"'+(u===defaultSel?' selected':'')+'>'+label+'</option>';
+    return '<button type="button" class="ubtn'+(u===defaultSel?' on':'')+'" data-u="'+u+'" onclick="selectUnitBtn(this)">'+label+'</button>';
   }).join('');
 
   var canWarehouseIn = WAREHOUSE_IN_IDS.indexOf(String(invUser.empId))!==-1;
   var btns=isWH
     ?(canWarehouseIn?'<button class="ia in" onclick="doIn1(\''+nm+'\')">📥입고</button>':'')+'<button class="ia out" onclick="doOut1(\''+nm+'\')">📤출고</button>'
     :'<button class="ia ret" onclick="doRet1(\''+nm+'\')">↩반납</button><button class="ia con" onclick="doCon1(\''+nm+'\')">🔥소비</button>';
+  var checked=bulkSelected.has(i.name)?'checked':'';
   return '<div class="icard" id="ic_'+ieid(i.name)+'">'
     +'<div class="icard-top">'
+    +'<input type="checkbox" class="ichk" data-name="'+nm+'" '+checked+' onchange="toggleBulkSelect(this)">'
     +'<span class="ibar" style="background:'+col+'"></span>'
     +'<span class="iname'+(low?' low':'')+'">'+(low?'⚠️':'')+i.name+(i.memo?'<br><span class="imemo">'+i.memo+'</span>':'')+'</span>'
     +'<div class="iqty '+qc+'">'+i.dsp+'</div>'
     +'</div>'
     +'<div class="icard-bot">'
     +'<input type="number" class="inum" id="qn_'+ieid(i.name)+'" value="1" min="1">'
-    +'<select class="isel" id="un_'+ieid(i.name)+'">'+optHtml+'</select>'
+    +'<div class="uwrap" id="un_'+ieid(i.name)+'" data-selected="'+defaultSel+'">'+unitBtnHtml+'</div>'
     +btns
     +'</div></div>';
+}
+
+function selectUnitBtn(btn){
+  var wrap=btn.parentElement;
+  wrap.querySelectorAll('.ubtn').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  wrap.dataset.selected=btn.dataset.u;
+}
+
+function toggleBulkSelect(cb){
+  var name=cb.dataset.name;
+  if(cb.checked) bulkSelected.add(name); else bulkSelected.delete(name);
+  renderBulkBar();
+}
+
+function renderBulkBar(){
+  var bar=ig('bulkBar');
+  if(!bar) return;
+  if(!bulkSelected.size || curTab==='거래내역' || curTab==='관리자'){
+    bar.classList.remove('show');bar.innerHTML='';return;
+  }
+  var isWH=curTab==='창고';
+  var canWarehouseIn=invUser&&WAREHOUSE_IN_IDS.indexOf(String(invUser.empId))!==-1;
+  var btns='';
+  if(isWH){
+    if(canWarehouseIn) btns+='<button class="bulk-btn in" onclick="bulkAction(\'in\')">📥 일괄입고</button>';
+    btns+='<button class="bulk-btn out" onclick="bulkAction(\'out\')">📤 일괄출고</button>';
+  } else {
+    btns+='<button class="bulk-btn ret" onclick="bulkAction(\'ret\')">↩ 일괄반납</button>';
+    btns+='<button class="bulk-btn con" onclick="bulkAction(\'con\')">🔥 일괄소비</button>';
+  }
+  bar.classList.add('show');
+  bar.innerHTML='<div class="bulkbar-inner"><span>'+bulkSelected.size+'개 선택됨</span><div class="bulkbar-btns">'+btns+'</div></div>';
+}
+
+function collectBulkItems(){
+  var list=[];
+  bulkSelected.forEach(function(name){
+    var i=findItem(name);
+    if(!i) return;
+    var baseUnit=computeBaseUnit(i);
+    var r=parseR(i.memo,baseUnit);
+    var qtyEl=ig('qn_'+ieid(name));
+    var unitEl=ig('un_'+ieid(name));
+    var qty=parseInt(qtyEl&&qtyEl.value)||1;
+    var unit=(unitEl&&unitEl.dataset.selected)||baseUnit;
+    var eaQty=toBase(qty,unit,r,baseUnit);
+    if(eaQty==null) return;
+    list.push({name:name,item:i,baseUnit:baseUnit,qty:qty,unit:unit,eaQty:eaQty});
+  });
+  return list;
 }
 
 function doIn1(name){
@@ -565,7 +634,7 @@ function doIn1(name){
   var baseUnit=computeBaseUnit(i);
   var r=parseR(i.memo,baseUnit);
   var qty=parseInt(ig('qn_'+ieid(name)).value)||1;
-  var unit=ig('un_'+ieid(name)).value||baseUnit;
+  var unit=(ig('un_'+ieid(name)).dataset.selected)||baseUnit;
   var eaQty=toBase(qty,unit,r,baseUnit);
   if(eaQty==null){alert('이 물품은 '+unit+' 단위 환산 정보가 메모에 없습니다.');return;}
   var prevQty=i.eaQty;
@@ -585,7 +654,7 @@ function doOut1(name){
   var baseUnit=computeBaseUnit(i);
   var r=parseR(i.memo,baseUnit);
   var qty=parseInt(ig('qn_'+ieid(name)).value)||1;
-  var unit=ig('un_'+ieid(name)).value||baseUnit;
+  var unit=(ig('un_'+ieid(name)).dataset.selected)||baseUnit;
   var eaQty=toBase(qty,unit,r,baseUnit);
   if(eaQty==null){alert('이 물품은 '+unit+' 단위 환산 정보가 메모에 없습니다.');return;}
   pendingOut={name:name,item:i,qty:qty,unit:unit,eaQty:eaQty};
@@ -623,7 +692,7 @@ function doRet1(name){
   var baseUnit=i?computeBaseUnit(i):'EA';
   var r=i?parseR(i.memo,baseUnit):{BX:null,PK:null,EA:null};
   var qty=parseInt(ig('qn_'+ieid(name)).value)||1;
-  var unit=ig('un_'+ieid(name)).value||baseUnit;
+  var unit=(ig('un_'+ieid(name)).dataset.selected)||baseUnit;
   var eaQty=toBase(qty,unit,r,baseUnit);
   if(eaQty==null){alert('이 물품은 '+unit+' 단위 환산 정보가 메모에 없습니다.');return;}
   if(!confirm(name+' '+qty+unit+' 창고로 반납?'))return;
@@ -646,7 +715,7 @@ function doCon1(name){
   var baseUnit=i?computeBaseUnit(i):'EA';
   var r=i?parseR(i.memo,baseUnit):{BX:null,PK:null,EA:null};
   var qty=parseInt(ig('qn_'+ieid(name)).value)||1;
-  var unit=ig('un_'+ieid(name)).value||baseUnit;
+  var unit=(ig('un_'+ieid(name)).dataset.selected)||baseUnit;
   var eaQty=toBase(qty,unit,r,baseUnit);
   if(eaQty==null){alert('이 물품은 '+unit+' 단위 환산 정보가 메모에 없습니다.');return;}
   if(!confirm(name+' '+qty+unit+' 소비(사용)처리?'))return;
@@ -657,6 +726,109 @@ function doCon1(name){
   invPost({action:'teamConsume',items:[{name:name,unit:baseUnit,memo:i?i.memo:'',category:i?i.category:'',inputQty:qty,inputUnit:unit,eaQty:eaQty}],team:curTab,user:invUser.name},function(err,res){
     if(err||!res||!res.success){
       teamItem.eaQty=prevTeamQty;saveInvCache();render();
+      alert('오류: '+(err?err.message:(res&&res.error?res.error:'네트워크 오류')));
+    }
+  });
+}
+
+/* ── 일괄 등록 (여러 품목 체크박스 선택 후 한번에) ── */
+function bulkAction(type){
+  var list=collectBulkItems();
+  if(!list.length){alert('선택된 항목이 없습니다.');return;}
+
+  if(type==='in'){
+    if(WAREHOUSE_IN_IDS.indexOf(String(invUser.empId))===-1){alert('입고 권한이 없습니다. (담당자만 가능)');return;}
+    if(!confirm(list.length+'개 항목을 일괄 입고할까요?'))return;
+    var prevs=list.map(function(x){return x.item.eaQty;});
+    list.forEach(function(x){ x.item.eaQty=(Number(x.item.eaQty)||0)+Number(x.eaQty); });
+    saveInvCache();bulkSelected.clear();render();
+    invPost({action:'warehouseIn',items:list.map(function(x){return {name:x.name,unit:x.baseUnit,memo:x.item.memo,category:x.item.category,inputQty:x.qty,inputUnit:x.unit,eaQty:x.eaQty};}),user:invUser.name},function(err,res){
+      if(err||!res||!res.success){
+        list.forEach(function(x,idx){x.item.eaQty=prevs[idx];});
+        saveInvCache();render();
+        alert('오류: '+(err?err.message:(res&&res.error?res.error:'네트워크 오류')));
+      }
+    });
+    return;
+  }
+
+  if(type==='out'){
+    pendingBulkOut={list:list,team:null};
+    ig('mSheet').innerHTML='<div class="modal-handle"></div>'
+      +'<div class="modal-title">📤 일괄 출고 ('+list.length+'개)</div>'
+      +'<div style="font-size:13px;color:var(--sub);margin-bottom:12px">어느 팀으로 출고할까요?</div>'
+      +'<div class="team-grid">'+['화성','수원','평택','아산1','2팀','3팀','4팀','5팀','6팀'].map(function(t){return '<button class="tbtn" data-t="'+t+'">'+t+'</button>';}).join('')+'</div>'
+      +'<button class="ok-btn" onclick="confirmBulkOut()">일괄 출고 확인</button>';
+    ig('mSheet').querySelectorAll('.tbtn').forEach(function(btn){btn.onclick=function(){ig('mSheet').querySelectorAll('.tbtn').forEach(function(b){b.classList.remove('on');});this.classList.add('on');pendingBulkOut.team=this.dataset.t;};});
+    showModal();
+    return;
+  }
+
+  if(type==='ret'){
+    if(!confirm(list.length+'개 항목을 창고로 일괄 반납할까요?'))return;
+    var prevTeamR=[],prevWhR=[];
+    list.forEach(function(x){
+      var teamItem=getTeamItem(curTab,x.name,x.item);
+      prevTeamR.push(teamItem.eaQty);
+      prevWhR.push(x.item.eaQty);
+      teamItem.eaQty=Math.max(0,(Number(teamItem.eaQty)||0)-Number(x.eaQty));
+      x.item.eaQty=(Number(x.item.eaQty)||0)+Number(x.eaQty);
+    });
+    saveInvCache();bulkSelected.clear();render();
+    invPost({action:'teamReturn',items:list.map(function(x){return {name:x.name,unit:x.baseUnit,memo:x.item.memo,category:x.item.category,inputQty:x.qty,inputUnit:x.unit,eaQty:x.eaQty};}),team:curTab,user:invUser.name},function(err,res){
+      if(err||!res||!res.success){
+        list.forEach(function(x,idx){
+          getTeamItem(curTab,x.name,x.item).eaQty=prevTeamR[idx];
+          x.item.eaQty=prevWhR[idx];
+        });
+        saveInvCache();render();
+        alert('오류: '+(err?err.message:(res&&res.error?res.error:'네트워크 오류')));
+      }
+    });
+    return;
+  }
+
+  if(type==='con'){
+    if(!confirm(list.length+'개 항목을 일괄 소비 처리할까요?'))return;
+    var prevTeamC=[];
+    list.forEach(function(x){
+      var teamItem=getTeamItem(curTab,x.name,x.item);
+      prevTeamC.push(teamItem.eaQty);
+      teamItem.eaQty=Math.max(0,(Number(teamItem.eaQty)||0)-Number(x.eaQty));
+    });
+    saveInvCache();bulkSelected.clear();render();
+    invPost({action:'teamConsume',items:list.map(function(x){return {name:x.name,unit:x.baseUnit,memo:x.item.memo,category:x.item.category,inputQty:x.qty,inputUnit:x.unit,eaQty:x.eaQty};}),team:curTab,user:invUser.name},function(err,res){
+      if(err||!res||!res.success){
+        list.forEach(function(x,idx){ getTeamItem(curTab,x.name,x.item).eaQty=prevTeamC[idx]; });
+        saveInvCache();render();
+        alert('오류: '+(err?err.message:(res&&res.error?res.error:'네트워크 오류')));
+      }
+    });
+    return;
+  }
+}
+
+function confirmBulkOut(){
+  if(!pendingBulkOut||!pendingBulkOut.team){alert('팀을 선택하세요');return;}
+  var list=pendingBulkOut.list, team=pendingBulkOut.team;
+  invCloseModal();
+  var prevWh=[],prevTeam=[];
+  list.forEach(function(x){
+    prevWh.push(x.item.eaQty);
+    var teamItem=getTeamItem(team,x.name,x.item);
+    prevTeam.push(teamItem.eaQty);
+    x.item.eaQty=(Number(x.item.eaQty)||0)-Number(x.eaQty);
+    teamItem.eaQty=(Number(teamItem.eaQty)||0)+Number(x.eaQty);
+  });
+  saveInvCache();bulkSelected.clear();render();
+  invPost({action:'warehouseOut',items:list.map(function(x){return {name:x.name,unit:x.baseUnit,memo:x.item.memo,category:x.item.category,inputQty:x.qty,inputUnit:x.unit,eaQty:x.eaQty};}),team:team,user:invUser.name},function(err,res){
+    pendingBulkOut=null;
+    if(err||!res||!res.success){
+      list.forEach(function(x,idx){
+        x.item.eaQty=prevWh[idx];
+        getTeamItem(team,x.name,x.item).eaQty=prevTeam[idx];
+      });
+      saveInvCache();render();
       alert('오류: '+(err?err.message:(res&&res.error?res.error:'네트워크 오류')));
     }
   });
